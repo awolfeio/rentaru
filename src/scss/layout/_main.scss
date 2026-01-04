@@ -1,0 +1,30 @@
+main {
+    //bind to nav width
+    width:calc(100vw - 408px);
+    > section {
+        width:calc(100% - 128px);
+        max-width:1200px;
+        margin:0 auto;
+        padding-top:72px;
+        .overview-cards {
+            display:flex;
+            flex-wrap:wrap;
+            gap:24px;
+            > div.card {
+                background:$surface-ice;
+                backdrop-filter:blur(20px);
+                min-height:168px;
+                border-radius:12px;
+                border:0.5px solid $surface-ice-edge;
+                &.third {
+                    width: calc((100% - (2 * 24px)) / 3);
+                }
+                &.half {
+                    width: calc((100% - 24px) / 2);
+                }
+            }
+        }
+    }
+}
+
+

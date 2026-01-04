@@ -1,0 +1,82 @@
+@import "base/reset.css";
+body *, body *:before, body *:after {
+  font-family: "Inter", sans-serif;
+  color: #fff;
+}
+body h1 {
+  font-size: 40px;
+  margin-bottom: 54px;
+}
+
+nav {
+  width: 408px;
+  height: 100vh;
+  padding: 48px;
+  background: rgba(185, 206, 255, 0.04);
+  border-top-right-radius: 24px;
+  border-bottom-right-radius: 24px;
+}
+nav a.logo svg {
+  transition: 0.24s ease;
+}
+nav a.logo:hover svg {
+  transform: scale(1.04);
+}
+nav .nav-links {
+  display: flex;
+  flex-direction: column;
+  margin-top: 48px;
+}
+nav .nav-links a {
+  padding: 24px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: color 0.18s ease, background 0.18s ease, transform 0.18s ease, opacity 0.18s ease;
+}
+nav .nav-links a:not(.active):hover {
+  background: rgba(219, 230, 255, 0.05);
+}
+nav .nav-links a.active {
+  background: rgba(219, 230, 255, 0.1);
+}
+
+main {
+  width: calc(100vw - 408px);
+}
+main > section {
+  width: calc(100% - 128px);
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-top: 72px;
+}
+main > section .overview-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+main > section .overview-cards > div.card {
+  background: rgba(185, 206, 255, 0.04);
+  -webkit-backdrop-filter: blur(20px);
+          backdrop-filter: blur(20px);
+  min-height: 168px;
+  border-radius: 12px;
+  border: 0.5px solid rgba(7, 196, 255, 0.08);
+}
+main > section .overview-cards > div.card.third {
+  width: calc((100% - 48px) / 3);
+}
+main > section .overview-cards > div.card.half {
+  width: calc((100% - 24px) / 2);
+}
+
+body {
+  background: #222;
+  background: url("../images/temp-bg.png");
+  background-size: cover;
+}
+body #app {
+  display: flex;
+}/*# sourceMappingURL=style.css.map */

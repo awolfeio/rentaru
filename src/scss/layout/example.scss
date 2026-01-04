@@ -1,0 +1,41 @@
+//Example with page wrapper enforcing the flexible max width depending on screen size
+
+.page-wrapper {
+    width:1440px; //absolute max of content that is not full bleed being 1440px
+    max-width:100%; //compress below 1440px if smaller
+    margin:0 48px; // these are the site main side margins, maybe this would be instead be paddings on an outer wrapper
+}
+
+section {
+    padding:0 100px 100px 100px;
+    position:relative;
+    width:100%;
+
+    h2 {
+        margin-top:64px;
+    }
+
+    .carousel {
+        position:relative;
+        width:100%;
+        .arrow {
+            position:absolute;
+            top:50%;
+            transform:translateY(-50%);
+            &.prev {
+                left:-72px;
+            }
+            &.next {
+                right:-72px;
+            }
+        }
+        .dots {
+            position:absolute;
+            left:50%;
+            transform:translateX(-50%);
+            bottom:-54px;
+        }
+    }
+}
+
+

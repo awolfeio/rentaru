@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import "base/reset.css", "base/colors", "base/typography", "base/utility",
+  "base/animations", "base/mixins", "layout/nav", "layout/main", "layout/footer";
+
+body {
+  background: #222;
+  //background:red;
+  background: url("../images/temp-bg.png");
+  background-size: cover;
+
+  #app {
+    display: flex;
+  }
+}

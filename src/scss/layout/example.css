@@ -1,0 +1,35 @@
+.page-wrapper {
+  width: 1440px;
+  max-width: 100%;
+  margin: 0 48px;
+}
+
+section {
+  padding: 0 100px 100px 100px;
+  position: relative;
+  width: 100%;
+}
+section h2 {
+  margin-top: 64px;
+}
+section .carousel {
+  position: relative;
+  width: 100%;
+}
+section .carousel .arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+section .carousel .arrow.prev {
+  left: -72px;
+}
+section .carousel .arrow.next {
+  right: -72px;
+}
+section .carousel .dots {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: -54px;
+}/*# sourceMappingURL=example.css.map */

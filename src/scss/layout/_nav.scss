@@ -1,0 +1,38 @@
+nav {
+    width:408px;
+    height:100vh;
+    padding:48px;
+    background:$surface-ice;
+    border-top-right-radius:24px;
+    border-bottom-right-radius:24px;
+    a.logo {
+        svg {
+            transition:0.24s ease;
+        }
+        &:hover {
+            svg {
+                transform:scale(1.04);
+            }
+        }
+    }
+    .nav-links {
+        display:flex;
+        flex-direction:column;
+        margin-top:48px;
+        a {
+            padding:24px;
+            font-size:20px;
+            font-weight:600;
+            color:#fff;
+            text-decoration:none;
+            border-radius:8px;
+            transition:$element-transition;
+            &:not(.active):hover {
+                background:$surface-ice-hover;
+            }
+            &.active {
+                background:$surface-ice-active;
+            }
+        }
+    }
+}

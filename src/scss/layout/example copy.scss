@@ -1,0 +1,19 @@
+
+$side-margin: 48px;
+$vertical-margin: 48px;
+
+.lightbox-wrapper {
+
+    width:auto;
+    max-width:calc(100vw - ($side-margin * 2));
+    max-height:calc(100vh - ($vertical-margin * 2));
+    position:absolute;
+    transform:translateX(-50%) translateY(-50%);
+
+    img {
+        width:auto;//intrinsic size here brought from factory?
+        max-width:100%;
+    }
+}
+
+
