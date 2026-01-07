@@ -2,12 +2,12 @@ import { AlertTriangle, Banknote, Clock, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const ActionItem = ({ icon: Icon, title, meta, urgency = 'medium', actionLabel }: any) => (
-    <div className="group flex items-center gap-4 p-3 rounded-lg hover:bg-muted/50 transition-colors border border-transparent hover:border-border cursor-pointer">
+    <div className="group flex items-center gap-4 p-3 rounded-xl bg-muted/20 border border-border/50 hover:border-border hover:bg-muted/50 transition-all duration-200 cursor-pointer">
         <div className={cn(
             "p-2 rounded-lg flex-shrink-0",
-             urgency === 'high' ? "bg-red-100 text-red-600 dark:bg-red-900/20 dark:text-red-400" :
-             urgency === 'medium' ? "bg-amber-100 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400" :
-             "bg-blue-100 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
+            urgency === 'high' ? "bg-red-100 text-red-600 dark:bg-red-900/20 dark:text-red-400" :
+                urgency === 'medium' ? "bg-amber-100 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400" :
+                    "bg-blue-100 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
         )}>
             <Icon className="w-5 h-5" />
         </div>
@@ -34,21 +34,21 @@ export function ActionQueue() {
             <p className="text-sm text-muted-foreground mb-6">Immediate attention required.</p>
 
             <div className="flex flex-col gap-2 -mx-2 px-2 overflow-y-auto max-h-[400px]">
-                <ActionItem 
+                <ActionItem
                     icon={AlertTriangle}
                     title="Water leak – Unit 3B"
                     meta="Reported 2 hours ago · Vendor unassigned"
                     urgency="high"
                     actionLabel="Assign"
                 />
-                 <ActionItem 
+                <ActionItem
                     icon={Banknote}
                     title="Rent overdue – John S."
                     meta="7 days overdue · $1,250"
                     urgency="medium"
                     actionLabel="Review"
                 />
-                 <ActionItem 
+                <ActionItem
                     icon={Clock}
                     title="Lease expires in 21 days"
                     meta="Unit 12 · Sarah Jenkins"

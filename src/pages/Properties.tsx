@@ -1,15 +1,15 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Building2, 
-  MapPin, 
-  ChevronDown, 
-  AlertTriangle, 
-  Wrench, 
-  Plus, 
-  Search, 
-  Filter 
+import {
+  Building2,
+  MapPin,
+  ChevronDown,
+  AlertTriangle,
+  Wrench,
+  Plus,
+  Search,
+  Filter
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -128,13 +128,13 @@ const UnitTable = ({ units }: { units: Unit[] }) => (
             <td className="px-6 py-3 text-muted-foreground">{unit.leaseEndDate || '—'}</td>
             <td className="px-6 py-3 text-right">
               {unit.maintenanceRequest && (
-                 <span className="inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-500 font-medium mr-4">
-                   <Wrench size={12} /> Req
-                 </span>
+                <span className="inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-500 font-medium mr-4">
+                  <Wrench size={12} /> Req
+                </span>
               )}
-               <button className="text-muted-foreground hover:text-foreground transition-colors">
-                 Edit
-               </button>
+              <button className="text-muted-foreground hover:text-foreground transition-colors">
+                Edit
+              </button>
             </td>
           </tr>
         ))}
@@ -155,90 +155,90 @@ const PropertyRow = ({ property }: { property: Property }) => {
 
   return (
     <div className={cn(
-        "group border rounded-xl bg-card transition-all duration-200",
-        expanded ? "shadow-md ring-1 ring-primary/5 border-primary/20" : "hover:border-primary/20 hover:shadow-sm"
+      "group border rounded-xl bg-card transition-all duration-200",
+      expanded ? "shadow-md ring-1 ring-primary/5 border-primary/20" : "hover:border-primary/20 hover:shadow-sm"
     )}>
-      <div 
+      <div
         className="p-4 flex flex-col md:flex-row md:items-center gap-4 cursor-pointer"
         onClick={() => navigate(`/properties/${property.id}`)}
       >
         {/* Identifiers */}
         <div className="flex-1 min-w-[200px]">
           <div className="flex items-center gap-3">
-             <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                <Building2 size={20} />
-             </div>
-             <div>
-                <h3 className="font-semibold text-foreground">{property.name}</h3>
-                <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                  <MapPin size={12} />
-                  {property.address}
-                </div>
-             </div>
+            <div className="p-2 bg-primary/10 rounded-lg text-primary">
+              <Building2 size={20} />
+            </div>
+            <div>
+              <h3 className="font-semibold text-foreground">{property.name}</h3>
+              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                <MapPin size={12} />
+                {property.address}
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Stats Grid */}
         <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-4 items-center">
-            
-            {/* Unit Count */}
-            <div className="text-sm">
-                <div className="text-muted-foreground text-xs">Units</div>
-                <div className="font-medium">{property.units.length}</div>
-            </div>
 
-            {/* Occupancy */}
-            <div className="text-sm">
-                <div className="text-muted-foreground text-xs">Occupancy</div>
-                <div className={cn("font-medium", occupancyRate < 90 ? "text-amber-600 dark:text-amber-500" : "text-foreground")}>
-                    {occupancyRate}%
-                </div>
-            </div>
+          {/* Unit Count */}
+          <div className="flex flex-col items-center justify-center text-center">
+            <div className="text-muted-foreground text-xs mb-1">Units</div>
+            <div className="font-semibold text-base">{property.units.length}</div>
+          </div>
 
-            {/* Financial */}
-            <div className="text-sm">
-                <div className="text-muted-foreground text-xs">Rent Status</div>
-                <div className="font-medium flex items-center gap-1">
-                    ${property.rentCollected.toLocaleString()}
-                    <span className="text-muted-foreground font-normal text-xs">/ ${property.rentExpected.toLocaleString()}</span>
-                </div>
+          {/* Occupancy */}
+          <div className="flex flex-col items-center justify-center text-center">
+            <div className="text-muted-foreground text-xs mb-1">Occupancy</div>
+            <div className={cn("font-semibold text-base", occupancyRate < 90 ? "text-amber-600 dark:text-amber-500" : "text-foreground")}>
+              {occupancyRate}%
             </div>
+          </div>
 
-            {/* Maintenance */}
-            <div className="text-sm">
-                 <div className="text-muted-foreground text-xs">Maintenance</div>
-                 <div className="font-medium flex items-center gap-1">
-                    {maintenanceCount > 0 ? (
-                        <span className="text-amber-600 dark:text-amber-500 flex items-center gap-1">
-                            <Wrench size={12} /> {maintenanceCount}
-                        </span>
-                    ) : (
-                        <span className="text-muted-foreground">—</span>
-                    )}
-                 </div>
+          {/* Financial */}
+          <div className="flex flex-col items-center justify-center text-center">
+            <div className="text-muted-foreground text-xs mb-1">Rent Status</div>
+            <div className="flex flex-col items-center leading-tight">
+              <span className="font-semibold text-base">${property.rentCollected.toLocaleString()}</span>
+              <span className="text-muted-foreground text-[11px] font-normal">/ ${property.rentExpected.toLocaleString()}</span>
             </div>
+          </div>
+
+          {/* Maintenance */}
+          <div className="flex flex-col items-center justify-center text-center">
+            <div className="text-muted-foreground text-xs mb-1">Maintenance</div>
+            <div className="font-medium flex items-center justify-center h-6">
+              {maintenanceCount > 0 ? (
+                <span className="text-amber-600 dark:text-amber-500 flex items-center gap-1.5 font-semibold">
+                  <Wrench size={14} /> {maintenanceCount}
+                </span>
+              ) : (
+                <span className="text-muted-foreground">—</span>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Actions & Alerts */}
         <div className="flex items-center gap-4 justify-end min-w-[100px]">
-            {isOverdue && (
-                <div className="text-rose-500" title="Rent Overdue">
-                    <AlertTriangle size={18} />
-                </div>
-            )}
-            
-            <div 
-                className={cn(
-                    "transition-transform duration-200 p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800", 
-                    expanded && "rotate-180"
-                )}
-                onClick={(e) => {
-                    e.stopPropagation();
-                    setExpanded(!expanded);
-                }}
-            >
-                <ChevronDown size={20} className="text-muted-foreground" />
+          {isOverdue && (
+            <div className="text-rose-500" title="Rent Overdue">
+              <AlertTriangle size={18} />
             </div>
+          )}
+
+          <div
+            className={cn(
+              "transition-transform duration-200 p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800",
+              expanded && "rotate-180"
+            )}
+            onClick={(e) => {
+              e.stopPropagation();
+              setExpanded(!expanded);
+            }}
+          >
+            <ChevronDown size={20} className="text-muted-foreground" />
+          </div>
         </div>
       </div>
 
@@ -249,9 +249,11 @@ const PropertyRow = ({ property }: { property: Property }) => {
 };
 
 export default function PropertiesPage() {
+  const navigate = useNavigate();
+
   return (
     <div className="max-w-6xl mx-auto space-y-6">
-      
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -259,32 +261,35 @@ export default function PropertiesPage() {
           <p className="text-muted-foreground">Manage your buildings and check unit status.</p>
         </div>
         <div className="flex items-center gap-2">
-           <button className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium text-sm">
-             <Plus size={16} />
-             Add Property
-           </button>
+          <button
+            onClick={() => navigate('/properties/new')}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium text-sm"
+          >
+            <Plus size={16} />
+            Add Property
+          </button>
         </div>
       </div>
 
       {/* Controls */}
       <div className="flex items-center gap-2 bg-card p-2 rounded-lg border shadow-sm max-w-2xl">
-         <Search className="text-muted-foreground ml-2" size={18} />
-         <input 
-            type="text" 
-            placeholder="Search properties..." 
-            className="flex-1 bg-transparent border-none focus:ring-0 text-sm placeholder:text-muted-foreground"
-         />
-         <div className="w-px h-6 bg-border mx-2" />
-         <button className="flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-            <Filter size={14} />
-            Filters
-         </button>
+        <Search className="text-muted-foreground ml-2" size={18} />
+        <input
+          type="text"
+          placeholder="Search properties..."
+          className="flex-1 bg-transparent border-none focus:ring-0 text-sm placeholder:text-muted-foreground"
+        />
+        <div className="w-px h-6 bg-border mx-2" />
+        <button className="flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+          <Filter size={14} />
+          Filters
+        </button>
       </div>
 
       {/* Property List */}
       <div className="space-y-4">
         {MOCK_PROPERTIES.map(p => (
-            <PropertyRow key={p.id} property={p} />
+          <PropertyRow key={p.id} property={p} />
         ))}
       </div>
 
