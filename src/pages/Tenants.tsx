@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { 
   Search, 
   Filter, 
@@ -17,121 +17,29 @@ import {
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// --- Types ---
-
-type RentStatus = 'paid' | 'late' | 'partial';
-
-interface Tenant {
-  id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  propertyName: string;
-  unitNumber: string;
-  leaseEndDate: string;
-  rentAmount: number;
-  rentStatus: RentStatus;
-  balance: number;
-  flags: string[]; // e.g., 'overdue', 'ending_soon', 'maintenance'
-  lastPaymentDate?: string;
-  paymentMethod?: string;
-  maintenanceRequestCount: number;
-}
-
-// --- Mock Data ---
-
-const MOCK_TENANTS: Tenant[] = [
-  {
-    id: 't1',
-    name: 'Jane Smith',
-    email: 'jane.smith@example.com',
-    phone: '555-0123',
-    propertyName: 'Oak Street Apartments',
-    unitNumber: '3B',
-    leaseEndDate: '2024-02-15',
-    rentAmount: 1450,
-    rentStatus: 'late',
-    balance: 1450,
-    flags: ['overdue', 'ending_soon'],
-    lastPaymentDate: '2023-12-01',
-    paymentMethod: 'Bank Transfer (**4567)',
-    maintenanceRequestCount: 0
-  },
-  {
-    id: 't2',
-    name: 'Michael Chen',
-    email: 'm.chen@example.com',
-    propertyName: 'Highland Lofts',
-    unitNumber: '102',
-    leaseEndDate: '2024-08-01',
-    rentAmount: 2300,
-    rentStatus: 'paid',
-    balance: 0,
-    flags: [],
-    lastPaymentDate: '2024-01-01',
-    paymentMethod: 'Credit Card (**8899)',
-    maintenanceRequestCount: 2
-  },
-  {
-    id: 't3',
-    name: 'Sarah Johnson',
-    email: 's.johnson@example.com',
-    propertyName: 'Highland Lofts',
-    unitNumber: '205',
-    leaseEndDate: '2024-06-30',
-    rentAmount: 2100,
-    rentStatus: 'partial',
-    balance: 450,
-    flags: ['partial_payment'],
-    lastPaymentDate: '2024-01-03',
-    paymentMethod: 'Auto-Pay',
-    maintenanceRequestCount: 0
-  },
-  {
-    id: 't4',
-    name: 'David Wilson',
-    email: 'dwilson@example.com',
-    propertyName: 'Sunset Duplex',
-    unitNumber: 'A',
-    leaseEndDate: '2024-11-15',
-    rentAmount: 1850,
-    rentStatus: 'paid',
-    balance: 0,
-    flags: ['maintenance_high'],
-    lastPaymentDate: '2024-01-01',
-    paymentMethod: 'Check',
-    maintenanceRequestCount: 4
-  },
-  {
-    id: 't5',
-    name: 'Emily Davis',
-    email: 'emily.d@example.com',
-    propertyName: 'The Oakley',
-    unitNumber: '4A',
-    leaseEndDate: '2024-03-01',
-    rentAmount: 1200,
-    rentStatus: 'paid',
-    balance: 0,
-    flags: [],
-    lastPaymentDate: '2024-01-02',
-    paymentMethod: 'Stripe',
-    maintenanceRequestCount: 0
-  }
-];
+// Imports
+import { Tenant, RentStatus, LeaseStatus } from '@/types/tenant';
+import { MOCK_TENANTS } from '@/mockData/tenants';
+import { TenantFilterDrawer } from '@/components/tenants/TenantFilterDrawer';
+import { TenantFilterState, INITIAL_FILTERS } from '@/types/tenantFilters';
 
 // --- Components ---
 
-const StatusBadge = ({ status }: { status: RentStatus }) => {
+const RentStatusBadge = ({ status }: { status: RentStatus }) => {
   const styles = {
     paid: 'bg-emerald-100/50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border-emerald-200/50 dark:border-emerald-500/20',
-    late: 'bg-rose-100/50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400 border-rose-200/50 dark:border-rose-500/20',
-    partial: 'bg-amber-100/50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border-amber-200/50 dark:border-amber-500/20'
+    partial: 'bg-amber-100/50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border-amber-200/50 dark:border-amber-500/20',
+    overdue: 'bg-rose-100/50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400 border-rose-200/50 dark:border-rose-500/20',
+    credit: 'bg-blue-100/50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 border-blue-200/50 dark:border-blue-500/20',
+    no_balance: 'bg-slate-100/50 text-slate-700 dark:bg-slate-500/10 dark:text-slate-400 border-slate-200/50 dark:border-slate-500/20'
   };
 
-  const labels = {
+  const labels: Record<RentStatus, string> = {
     paid: 'Paid',
-    late: 'Late',
-    partial: 'Partial'
+    partial: 'Partial',
+    overdue: 'Overdue',
+    credit: 'Credit',
+    no_balance: 'Settled'
   };
 
   return (
@@ -145,7 +53,8 @@ const TenantRow = ({ tenant }: { tenant: Tenant }) => {
   const [expanded, setExpanded] = useState(false);
 
   const daysUntilLeaseEnd = Math.ceil((new Date(tenant.leaseEndDate).getTime() - new Date().getTime()) / (1000 * 3600 * 24));
-  const isLeaseEndingSoon = daysUntilLeaseEnd <= 60;
+  const isLeaseEndingSoon = daysUntilLeaseEnd <= 60 && daysUntilLeaseEnd > 0;
+  const isExpired = daysUntilLeaseEnd <= 0;
 
   return (
     <div className={cn(
@@ -160,13 +69,14 @@ const TenantRow = ({ tenant }: { tenant: Tenant }) => {
         {/* Tenant Identity */}
         <div className="flex-1 min-w-[200px]">
           <div className="flex items-center gap-3">
-             <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-muted-foreground font-medium text-sm">
-                {tenant.name.split(' ').map(n => n[0]).join('')}
+             <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-muted-foreground font-medium text-sm border">
+                {tenant.name.split(' ').slice(0, 2).map(n => n[0]).join('')}
              </div>
              <div>
                 <h3 className="font-semibold text-foreground flex items-center gap-2">
                     {tenant.name}
-                    {tenant.flags.includes('overdue') && <AlertTriangle size={14} className="text-rose-500" />}
+                    {tenant.rentStatus === 'overdue' && <AlertTriangle size={14} className="text-rose-500" />}
+                    {tenant.tags.includes('vip') && <span className="text-[10px] bg-indigo-100 text-indigo-700 px-1 rounded-sm border border-indigo-200">VIP</span>}
                 </h3>
                 <div className="flex items-center gap-1 text-sm text-muted-foreground">
                     <Mail size={12} /> {tenant.email}
@@ -187,13 +97,18 @@ const TenantRow = ({ tenant }: { tenant: Tenant }) => {
             {/* Lease Status */}
             <div>
                 <div className="text-xs text-muted-foreground mb-1">Lease</div>
-                <div className={cn("text-sm font-medium flex items-center gap-1.5", isLeaseEndingSoon && "text-amber-600 dark:text-amber-500")}>
+                <div className={cn("text-sm font-medium flex items-center gap-1.5", 
+                    isLeaseEndingSoon ? "text-amber-600 dark:text-amber-500" : 
+                    isExpired ? "text-rose-600" : "text-foreground"
+                )}>
                     {isLeaseEndingSoon ? (
                         <>
                             <Clock size={14} /> Ends in {daysUntilLeaseEnd} days
                         </>
+                    ) : isExpired ? (
+                        <>Expired</>
                     ) : (
-                        <span className="text-foreground">Active</span>
+                         <span className="capitalize">{tenant.leaseStatus.replace(/_/g, ' ')}</span>
                     )}
                 </div>
             </div>
@@ -201,7 +116,7 @@ const TenantRow = ({ tenant }: { tenant: Tenant }) => {
             {/* Rent Status */}
             <div>
                 <div className="text-xs text-muted-foreground mb-1">Status</div>
-                <StatusBadge status={tenant.rentStatus} />
+                <RentStatusBadge status={tenant.rentStatus} />
             </div>
 
             {/* Balance */}
@@ -216,7 +131,7 @@ const TenantRow = ({ tenant }: { tenant: Tenant }) => {
         {/* Actions & Chevron */}
         <div className="flex items-center gap-3 justify-end min-w-[50px]">
              {tenant.maintenanceRequestCount > 0 && (
-                 <div className="p-1.5 rounded-full bg-amber-100/50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-500" title="Open Maintenance Req">
+                 <div className="p-1.5 rounded-full bg-amber-100/50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-500 border border-amber-200/30" title="Open Maintenance Req">
                      <Wrench size={14} />
                  </div>
              )}
@@ -250,11 +165,11 @@ const TenantRow = ({ tenant }: { tenant: Tenant }) => {
                             </div>
                             <div className="flex justify-between border-b pb-1 border-border/50">
                                 <span className="text-muted-foreground">Rent</span>
-                                <span className="font-medium">${tenant.rentAmount}/mo</span>
+                                <span className="font-medium">${tenant.rentAmount.toLocaleString()}/mo</span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-muted-foreground">Term</span>
-                                <span className="font-medium">12 Months</span>
+                                <span className="text-muted-foreground">Start</span>
+                                <span className="font-medium">{tenant.leaseStartDate}</span>
                             </div>
                         </div>
                     </div>
@@ -271,11 +186,13 @@ const TenantRow = ({ tenant }: { tenant: Tenant }) => {
                             </div>
                             <div className="flex justify-between border-b pb-1 border-border/50">
                                 <span className="text-muted-foreground">Method</span>
-                                <span className="font-medium">{tenant.paymentMethod || '—'}</span>
+                                <span className="font-medium capitalize">{tenant.paymentMethod?.replace('_', ' ') || '—'}</span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-muted-foreground">History</span>
-                                <a href="#" className="text-primary hover:underline text-xs">View Ledger</a>
+                                <span className="text-muted-foreground">Auto-Pay</span>
+                                <span className={cn("font-medium", tenant.autopayEnabled ? "text-emerald-600" : "text-muted-foreground")}>
+                                    {tenant.autopayEnabled ? "Enabled" : "Off"}
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -291,7 +208,9 @@ const TenantRow = ({ tenant }: { tenant: Tenant }) => {
                                     <AlertCircle size={16} />
                                     {tenant.maintenanceRequestCount} Active Request{tenant.maintenanceRequestCount > 1 ? 's' : ''}
                                 </div>
-                                <div className="text-xs text-muted-foreground mt-1">Last request: Leaking faucet (2 days ago)</div>
+                                {tenant.lastMaintenanceRequestDate && (
+                                    <div className="text-xs text-muted-foreground mt-1">Last: {tenant.lastMaintenanceRequestDate}</div>
+                                )}
                             </div>
                         ) : (
                             <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-500 text-sm mt-2">
@@ -325,6 +244,85 @@ const TenantRow = ({ tenant }: { tenant: Tenant }) => {
 };
 
 export default function TenantsPage() {
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeFilters, setActiveFilters] = useState<TenantFilterState>(INITIAL_FILTERS);
+
+  // --- Filtering Logic ---
+  
+  const filteredTenants = useMemo(() => {
+    return MOCK_TENANTS.filter(tenant => {
+        // 1. Search Query
+        const searchLower = searchQuery.toLowerCase();
+        const matchesSearch = 
+            tenant.name.toLowerCase().includes(searchLower) ||
+            tenant.email.toLowerCase().includes(searchLower) ||
+            tenant.unitNumber.toLowerCase().includes(searchLower);
+
+        if (!matchesSearch) return false;
+
+        // 2. Filters from Drawer
+        
+
+        // Tenant Status Filter
+        if (activeFilters.status.length > 0) {
+            // We map 'status' filter to 'leaseStatus' field as that's our source of truth
+            if (!activeFilters.status.includes(tenant.leaseStatus)) return false;
+        }
+
+        
+        // Let's filter by `leaseStatus` if the filter is set.
+        if (activeFilters.leaseStatus.length > 0) {
+            if (!activeFilters.leaseStatus.includes(tenant.leaseStatus)) return false;
+        }
+
+        // Rent Status
+        if (activeFilters.rentStatus.length > 0) {
+            // Mapping check: The filter drawer uses lowercase string values matching the type
+            if (!activeFilters.rentStatus.includes(tenant.rentStatus)) return false;
+        }
+
+        // Properties
+        if (activeFilters.propertyIds.length > 0) {
+            if (!activeFilters.propertyIds.includes(tenant.propertyId)) return false;
+        }
+
+        // Maintenance
+        if (activeFilters.hasOpenTickets) {
+            if (tenant.maintenanceRequestCount === 0) return false;
+        }
+
+        // Balance Range
+        if (activeFilters.balanceMin !== undefined && tenant.balance < activeFilters.balanceMin) return false;
+        if (activeFilters.balanceMax !== undefined && tenant.balance > activeFilters.balanceMax) return false;
+
+        // Lease Expiration (Simple logic)
+        if (activeFilters.leaseExpiringDays) {
+            const daysUntil = Math.ceil((new Date(tenant.leaseEndDate).getTime() - new Date().getTime()) / (1000 * 3600 * 24));
+            if (daysUntil < 0 || daysUntil > activeFilters.leaseExpiringDays) return false;
+        }
+
+        return true;
+    });
+  }, [searchQuery, activeFilters]);
+
+  // Count active filters for badge
+  const activeCount = 
+      activeFilters.status.length + 
+      activeFilters.rentStatus.length + 
+      activeFilters.leaseStatus.length + 
+      activeFilters.propertyIds.length +
+      (activeFilters.hasOpenTickets ? 1 : 0) +
+      (activeFilters.leaseExpiringDays ? 1 : 0) + 
+      (activeFilters.balanceMin || activeFilters.balanceMax ? 1 : 0);
+
+  const clearFilter = (key: keyof TenantFilterState) => { // reset specific is hard with this structure without complex logic, 
+      // simplified to just remove from array or undefined
+      // For MVP just full reset is fine or toggle off chips if implemented.
+      // We will skip individual chip dismissal logic for this specific artifact to save space/time, 
+      // relying on the drawer to clear.
+  };
+
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       
@@ -348,21 +346,72 @@ export default function TenantsPage() {
          <input 
             type="text" 
             placeholder="Search by name, email, or unit..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="flex-1 bg-transparent border-none focus:ring-0 text-sm placeholder:text-muted-foreground outline-none"
          />
          <div className="w-px h-6 bg-border mx-2" />
-         <button className="flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+         <button 
+            onClick={() => setIsFilterOpen(true)}
+            className={cn(
+                "flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
+                activeCount > 0 
+                    ? "bg-primary/10 text-primary hover:bg-primary/20" 
+                    : "text-muted-foreground hover:text-foreground hover:bg-slate-100 dark:hover:bg-slate-800"
+            )}
+         >
             <Filter size={14} />
             Filters
+            {activeCount > 0 && (
+                <span className="bg-primary text-primary-foreground text-[10px] px-1.5 rounded-full h-4 min-w-[1rem] flex items-center justify-center">
+                    {activeCount}
+                </span>
+            )}
          </button>
       </div>
 
+      {/* Active Filters Summary (Optional but good UX) */}
+      {activeCount > 0 && (
+          <div className="flex gap-2 flex-wrap">
+              {activeFilters.hasOpenTickets && (
+                  <div className="text-xs bg-card border rounded-full px-2 py-1 flex items-center gap-1">
+                      Checking Maintenance
+                  </div>
+              )}
+              {activeFilters.propertyIds.length > 0 && (
+                  <div className="text-xs bg-card border rounded-full px-2 py-1 flex items-center gap-1">
+                      {activeFilters.propertyIds.length} Properties
+                  </div>
+              )}
+          </div>
+      )}
+
       {/* Tenant List */}
       <div className="space-y-3">
-        {MOCK_TENANTS.map(t => (
-            <TenantRow key={t.id} tenant={t} />
-        ))}
+        {filteredTenants.length > 0 ? (
+            filteredTenants.map(t => (
+                <TenantRow key={t.id} tenant={t} />
+            ))
+        ) : (
+            <div className="text-center py-12 text-muted-foreground bg-card/50 rounded-xl border border-dashed">
+                <p>No tenants found matching your criteria.</p>
+                <button 
+                    onClick={() => { setActiveFilters(INITIAL_FILTERS); setSearchQuery(''); }}
+                    className="mt-2 text-primary hover:underline text-sm font-medium"
+                >
+                    Clear all filters
+                </button>
+            </div>
+        )}
       </div>
+
+      <TenantFilterDrawer 
+        isOpen={isFilterOpen}
+        onClose={() => setIsFilterOpen(false)}
+        currentFilters={activeFilters}
+        onApply={setActiveFilters}
+        onReset={() => setActiveFilters(INITIAL_FILTERS)}
+      />
 
     </div>
   );

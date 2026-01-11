@@ -1,10 +1,10 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { CheckCircle2, X, AlertCircle, Info } from 'lucide-react';
+import { CheckCircle2, X, AlertCircle, Info, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { createPortal } from 'react-dom';
 
-type ToastType = 'success' | 'error' | 'info';
+type ToastType = 'success' | 'error' | 'info' | 'warning';
 
 interface Toast {
     id: string;
@@ -18,6 +18,7 @@ interface ToastContextType {
     success: (title: string, message?: string) => void;
     error: (title: string, message?: string) => void;
     info: (title: string, message?: string) => void;
+    warning: (title: string, message?: string) => void;
 }
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
@@ -50,9 +51,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     const success = (title: string, message?: string) => addToast({ type: 'success', title, message });
     const error = (title: string, message?: string) => addToast({ type: 'error', title, message });
     const info = (title: string, message?: string) => addToast({ type: 'info', title, message });
+    const warning = (title: string, message?: string) => addToast({ type: 'warning', title, message });
 
     return (
-        <ToastContext.Provider value={{ toast: addToast, success, error, info }}>
+        <ToastContext.Provider value={{ toast: addToast, success, error, info, warning }}>
             {children}
             {createPortal(
                 <div className="fixed bottom-6 right-6 z-[200] flex flex-col gap-2 pointer-events-none">
@@ -73,12 +75,14 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
         success: "bg-background border-emerald-500/20 text-foreground",
         error: "bg-background border-rose-500/20 text-foreground",
         info: "bg-background border-blue-500/20 text-foreground",
+        warning: "bg-background border-amber-500/20 text-foreground",
     };
 
     const icons = {
         success: <CheckCircle2 className="w-5 h-5 text-emerald-500" />,
         error: <AlertCircle className="w-5 h-5 text-rose-500" />,
         info: <Info className="w-5 h-5 text-blue-500" />,
+        warning: <AlertTriangle className="w-5 h-5 text-amber-500" />,
     };
 
     return (

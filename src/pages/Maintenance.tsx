@@ -8,96 +8,17 @@ import {
   ChevronDown,
   AlertOctagon,
   Clock,
-  CheckCircle,
   User,
   Briefcase,
   AlertTriangle,
-  MessageSquare
+  MessageSquare,
+  CheckCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
-
-// --- Types ---
-
-type UrgencyLevel = 'routine' | 'urgent' | 'emergency';
-type TicketStatus = 'open' | 'in_progress' | 'waiting' | 'resolved' | 'closed';
-
-interface MaintenanceTicket {
-  id: string;
-  title: string;
-  description: string;
-  propertyName: string;
-  unitNumber: string;
-  reportedBy: string;
-  urgency: UrgencyLevel;
-  status: TicketStatus;
-  vendorName?: string;
-  estimatedCost?: number;
-  actualCost?: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-// --- Mock Data ---
-
-const MOCK_TICKETS: MaintenanceTicket[] = [
-  {
-    id: 'm1',
-    title: 'Water leak under sink',
-    description: 'Tenant reports steady drip from p-trap under kitchen sink. Cabinet is damp.',
-    propertyName: 'Oak Street Apartments',
-    unitNumber: '3B',
-    reportedBy: 'Jane Smith (Tenant)',
-    urgency: 'urgent',
-    status: 'in_progress',
-    vendorName: 'Rapid Plumbers Co.',
-    estimatedCost: 350,
-    createdAt: '2024-01-03 09:30 AM',
-    updatedAt: '2024-01-03 11:45 AM'
-  },
-  {
-    id: 'm2',
-    title: 'HVAC not heating',
-    description: 'Heater blowing cold air. Thermostat set to 72, temp is 64.',
-    propertyName: 'Highland Lofts',
-    unitNumber: '102',
-    reportedBy: 'System Alert',
-    urgency: 'emergency',
-    status: 'open',
-    estimatedCost: 800,
-    createdAt: '2024-01-04 06:15 AM',
-    updatedAt: '2024-01-04 06:15 AM'
-  },
-  {
-    id: 'm3',
-    title: 'Closet door off rack',
-    description: 'Sliding door allows stuck.',
-    propertyName: 'Sunset Duplex',
-    unitNumber: 'A',
-    reportedBy: 'David Wilson (Tenant)',
-    urgency: 'routine',
-    status: 'waiting',
-    vendorName: 'Handyman Joe',
-    estimatedCost: 150,
-    createdAt: '2023-12-28 02:00 PM',
-    updatedAt: '2024-01-02 10:00 AM'
-  },
-  {
-    id: 'm4',
-    title: 'Lobby light flickering',
-    description: 'Main recessed light in entry hallway is strobing.',
-    propertyName: 'Highland Lofts',
-    unitNumber: 'Common Area',
-    reportedBy: 'Property Manager',
-    urgency: 'routine',
-    status: 'resolved',
-    vendorName: 'Bright Spark Electric',
-    estimatedCost: 200,
-    actualCost: 185,
-    createdAt: '2023-12-20',
-    updatedAt: '2023-12-22'
-  }
-];
+import { MaintenanceTicket, TicketStatus, UrgencyLevel } from '@/types/maintenance';
+import { MOCK_TICKETS } from '@/mockData/maintenance';
+import { CreateMaintenanceTicketModal } from '@/components/maintenance/CreateTicketModal';
 
 // --- Components ---
 
@@ -122,7 +43,7 @@ const UrgencyBadge = ({ level }: { level: UrgencyLevel }) => {
 };
 
 const StatusBadge = ({ status }: { status: TicketStatus }) => {
-  // Map internal status to display label
+  // Map internal status to display labels
   const labels: Record<TicketStatus, string> = {
     open: 'Open',
     in_progress: 'In Progress',
@@ -300,6 +221,18 @@ const TicketRow = ({ ticket }: { ticket: MaintenanceTicket }) => {
 };
 
 export default function MaintenancePage() {
+  const [tickets, setTickets] = useState<MaintenanceTicket[]>(MOCK_TICKETS);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  // TODO: In a real app, this would send to API
+  const handleCreateTicket = (newTicketPart: Partial<MaintenanceTicket>) => {
+      const ticket: MaintenanceTicket = {
+          ...newTicketPart as MaintenanceTicket, // Asserting for mock purposes
+          id: `m${Date.now()}`,
+      };
+      setTickets(prev => [ticket, ...prev]);
+  };
+
   return (
     <div className="max-w-6xl mx-auto space-y-6">
 
@@ -310,7 +243,10 @@ export default function MaintenancePage() {
           <p className="text-muted-foreground">Triage and track property issues.</p>
         </div>
         <div className="flex items-center gap-2">
-          <button className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-rose-600 text-white hover:bg-rose-700 transition-colors font-medium text-sm shadow-sm">
+          <button 
+            onClick={() => setIsCreateModalOpen(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-rose-600 text-white hover:bg-rose-700 transition-colors font-medium text-sm shadow-sm"
+          >
             <Plus size={16} />
             New Ticket
           </button>
@@ -334,10 +270,18 @@ export default function MaintenancePage() {
 
       {/* Ticket List */}
       <div className="space-y-3">
-        {MOCK_TICKETS.map(t => (
+        {tickets.map(t => (
           <TicketRow key={t.id} ticket={t} />
         ))}
       </div>
+
+      {/* Modal */}
+      <CreateMaintenanceTicketModal 
+        isOpen={isCreateModalOpen} 
+        onClose={() => setIsCreateModalOpen(false)} 
+        onCreate={handleCreateTicket}
+        userRole="manager" // Default to manager for now as per instructions
+      />
 
     </div>
   );

@@ -81,8 +81,11 @@ const KPICard = ({ label, value, subtext, alert }: { label: string, value: strin
     </div>
 );
 
-const UnitRow = ({ unit }: { unit: UnitSummary }) => (
-    <div className="grid grid-cols-12 gap-4 px-4 py-3 items-center border-b hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer group">
+const UnitRow = ({ unit, onClick }: { unit: UnitSummary, onClick: () => void }) => (
+    <div 
+        onClick={onClick}
+        className="grid grid-cols-12 gap-4 px-4 py-3 items-center border-b hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer group"
+    >
         <div className="col-span-2 font-medium">{unit.unitNumber}</div>
         <div className="col-span-3">
             <span className={cn(
@@ -204,7 +207,11 @@ export default function SinglePropertyPage() {
                         </div>
                         <div>
                             {MOCK_UNITS.map(unit => (
-                                <UnitRow key={unit.id} unit={unit} />
+                                <UnitRow 
+                                    key={unit.id} 
+                                    unit={unit} 
+                                    onClick={() => navigate(`/properties/${id}/units/${unit.id}`)}
+                                />
                             ))}
                             <div className="p-3 text-center border-t text-sm text-muted-foreground hover:text-primary cursor-pointer transition-colors">
                                 View All 24 Units

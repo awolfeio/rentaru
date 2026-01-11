@@ -1,75 +1,106 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Bell, CheckCircle2, AlertCircle, Clock, Info, ExternalLink } from 'lucide-react';
+import { 
+    X, Bell, Clock, ExternalLink, 
+    CreditCard, Wrench, FileText, User, 
+    MessageSquare, AlertTriangle, CheckCircle2 
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
-export type NotificationPriority = 'high' | 'medium' | 'low';
-export type NotificationType = 'payment' | 'maintenance' | 'lease' | 'message' | 'property' | 'system';
+export type NotificationPriority = 'success' | 'high' | 'medium' | 'low' | 'info';
 
-interface NotificationAction {
+export type NotificationType = 
+   // Financial
+   | "rent_payment_received"
+   | "rent_payment_failed"
+   | "refund_issued"
+   // Maintenance
+   | "maintenance_request_created"
+   | "maintenance_priority_escalated"
+   | "maintenance_completed"
+   | "vendor_assigned"
+   // Lease
+   | "lease_expiring"
+   | "lease_signed"
+   | "lease_renewed"
+   | "lease_terminated"
+   // Onboarding
+   | "application_submitted"
+   | "background_check_completed"
+   | "application_approved"
+   | "application_denied"
+   // Communication
+   | "message_received"
+   | "document_uploaded"
+   // System
+   | "system_alert"
+   | "permission_changed";
+
+export interface NotificationAction {
     label: string;
-    deepLink: string;
+    deepLink?: string;
+    actionType?: string;
 }
 
-interface Notification {
+export interface Notification {
     id: string;
     type: NotificationType;
-    title: string;
-    description?: string;
     priority: NotificationPriority;
+    title: string;
+    description: string;
     isRead: boolean;
     createdAt: string;
-    action?: NotificationAction;
+    actions?: NotificationAction[];
 }
 
 const MOCK_NOTIFICATIONS: Notification[] = [
     {
         id: '1',
-        type: 'payment',
+        type: 'rent_payment_received',
+        priority: 'success',
         title: 'Rent payment received',
         description: 'Unit 4B - John Smith has paid $2,400 for January rent.',
-        priority: 'high',
         isRead: false,
         createdAt: '2 mins ago',
-        action: { label: 'View Transaction', deepLink: '/accounting' }
+        actions: [{ label: 'View Transaction', deepLink: '/accounting' }]
     },
     {
         id: '2',
-        type: 'maintenance',
-        title: 'New maintenance request',
-        description: 'Unit 12A - Leaking faucet in master bathroom.',
+        type: 'maintenance_request_created',
         priority: 'high',
+        title: 'Urgent maintenance request',
+        description: 'Unit 12A - Active water leak reported in master bath.',
         isRead: false,
         createdAt: '15 mins ago',
-        action: { label: 'Assign Vendor', deepLink: '/maintenance' }
+        actions: [{ label: 'Assign Vendor', deepLink: '/maintenance' }]
     },
     {
         id: '3',
-        type: 'lease',
+        type: 'lease_expiring',
+        priority: 'medium',
         title: 'Lease expiring soon',
         description: 'Unit 7C - Sarah Johnson\'s lease expires in 30 days.',
-        priority: 'medium',
         isRead: false,
         createdAt: '2 hours ago',
-        action: { label: 'Renew Lease', deepLink: '/leases' }
+        actions: [{ label: 'Start Renewal', deepLink: '/leases' }]
     },
     {
         id: '4',
-        type: 'message',
+        type: 'message_received',
+        priority: 'medium',
         title: 'New message from tenant',
         description: 'Mike Miller: "Hi, I sent the signed parking agreement."',
-        priority: 'medium',
         isRead: true,
         createdAt: '5 hours ago',
-        action: { label: 'Reply', deepLink: '/messages' }
+        actions: [{ label: 'Reply', deepLink: '/messages' }]
     },
     {
         id: '5',
-        type: 'system',
-        title: 'Integration connected',
-        description: 'Stripe account successfully connected for Rentiru.',
+        type: 'system_alert',
         priority: 'low',
+        title: 'System Update',
+        description: 'Rentaru Platform v2.1.0 has been deployed successfully.',
         isRead: true,
         createdAt: '1 day ago',
     }
@@ -209,6 +240,7 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
 function NotificationItem({ notification, onClear }: { notification: Notification; onClear: () => void }) {
     const Icon = getIcon(notification.type);
     const priorityColor = getPriorityColor(notification.priority);
+    const priorityBg = getPriorityBg(notification.priority);
 
     return (
         <motion.div
@@ -226,97 +258,97 @@ function NotificationItem({ notification, onClear }: { notification: Notificatio
             )}
 
             <div className="flex gap-4">
-                <div className={cn("mt-0.5 p-2 rounded-lg h-fit", getCategoryBg(notification.type))}>
-                    <Icon className={cn("w-4 h-4", getCategoryColor(notification.type))} />
+                <div className={cn("mt-0.5 p-2 rounded-lg h-fit", priorityBg)}>
+                    <Icon className={cn("w-4 h-4", priorityColor)} />
                 </div>
 
-                <div className="flex-1 space-y-1">
-                    <div className="flex items-center justify-between">
-                        <span className={cn("text-[10px] font-bold uppercase tracking-wider", priorityColor)}>
-                            {notification.priority} Priority
-                        </span>
-                        <div className="flex items-center gap-2">
-                            <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                                <Clock className="w-3 h-3" />
-                                {notification.createdAt}
-                            </span>
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onClear();
-                                }}
-                                className="p-1 rounded-md hover:bg-muted text-muted-foreground transition-all translate-x-[2px]"
-                                title="Clear notification"
-                            >
-                                <X className="w-3 h-3" />
-                            </button>
-                        </div>
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                        <h3 className={cn("text-sm font-semibold leading-tight pr-4", priorityColor)}>
+                            {notification.title}
+                        </h3>
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onClear();
+                            }}
+                            className="p-1 rounded-md hover:bg-muted text-muted-foreground transition-all shrink-0"
+                            title="Clear notification"
+                        >
+                            <X className="w-3 h-3" />
+                        </button>
                     </div>
 
-                    <h3 className="text-sm font-semibold text-foreground leading-tight">
-                        {notification.title}
-                    </h3>
-
                     {notification.description && (
-                        <p className="text-xs text-muted-foreground leading-normal">
+                        <p className="text-xs text-muted-foreground leading-normal mt-1">
                             {notification.description}
                         </p>
                     )}
 
-                    {notification.action && (
-                        <div className="pt-2">
-                            <a
-                                href={notification.action.deepLink}
-                                className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline group/link"
-                            >
-                                {notification.action.label}
-                                <ExternalLink className="w-3 h-3 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 transition-transform" />
-                            </a>
+                    <div className="mt-3 flex items-end justify-between gap-4">
+                        <div className="flex flex-wrap gap-2">
+                            {notification.actions && notification.actions.map((action, idx) => (
+                                <a
+                                    key={idx}
+                                    href={action.deepLink}
+                                    className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-primary/5 hover:bg-primary/10 text-xs font-medium text-primary transition-colors group/link"
+                                >
+                                    {action.label}
+                                    <ExternalLink className="w-3 h-3 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 transition-transform" />
+                                </a>
+                            ))}
                         </div>
-                    )}
+
+                        <span className="text-[10px] text-muted-foreground flex items-center gap-1 shrink-0 pb-1">
+                            <Clock className="w-3 h-3" />
+                            {getTimeAgo(notification.createdAt)}
+                        </span>
+                    </div>
                 </div>
             </div>
         </motion.div>
     );
 }
 
+// Helper to keep 'createdAt' display simple or use the string as is if it's "2 mins ago"
+function getTimeAgo(dateString: string) {
+    return dateString;
+}
+
 function getIcon(type: NotificationType) {
-    switch (type) {
-        case 'payment': return CheckCircle2;
-        case 'maintenance': return AlertCircle;
-        case 'lease': return Clock;
-        case 'message': return Info;
-        case 'property': return Bell;
-        default: return Bell;
-    }
-}
-
-function getCategoryColor(type: NotificationType) {
-    switch (type) {
-        case 'payment': return "text-emerald-500";
-        case 'maintenance': return "text-amber-500";
-        case 'lease': return "text-blue-500";
-        case 'message': return "text-indigo-500";
-        case 'property': return "text-purple-500";
-        default: return "text-gray-500";
-    }
-}
-
-function getCategoryBg(type: NotificationType) {
-    switch (type) {
-        case 'payment': return "bg-emerald-500/10";
-        case 'maintenance': return "bg-amber-500/10";
-        case 'lease': return "bg-blue-500/10";
-        case 'message': return "bg-indigo-500/10";
-        case 'property': return "bg-purple-500/10";
-        default: return "bg-gray-500/10";
-    }
+    // Specific overrides
+    if (type === 'lease_expiring') return Clock;
+    
+    // Category mapping
+    if (type.startsWith('rent') || type === 'refund_issued') return CreditCard;
+    if (type.startsWith('maintenance') || type === 'vendor_assigned') return Wrench;
+    if (type.startsWith('lease')) return FileText;
+    if (type.startsWith('application') || type === 'background_check_completed') return User;
+    if (type === 'message_received') return MessageSquare;
+    if (type === 'document_uploaded') return FileText;
+    if (type === 'system_alert') return AlertTriangle;
+    
+    return Bell; // Default
 }
 
 function getPriorityColor(priority: NotificationPriority) {
     switch (priority) {
-        case 'high': return "text-red-500";
-        case 'medium': return "text-amber-500";
-        case 'low': return "text-muted-foreground";
+        case 'success': return "text-emerald-600 dark:text-emerald-400";
+        case 'high': return "text-rose-600 dark:text-rose-400";
+        case 'medium': return "text-amber-600 dark:text-amber-400";
+        case 'info': return "text-blue-600 dark:text-blue-400";
+        case 'low': return "text-slate-500 dark:text-slate-400";
+        default: return "text-slate-500";
+    }
+}
+
+function getPriorityBg(priority: NotificationPriority) {
+    switch (priority) {
+        case 'success': return "bg-emerald-500/10";
+        case 'high': return "bg-rose-500/10";
+        case 'medium': return "bg-amber-500/10";
+        case 'info': return "bg-blue-500/10";
+        case 'low': return "bg-slate-500/10";
+        default: return "bg-slate-500/10";
     }
 }

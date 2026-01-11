@@ -15,6 +15,8 @@ import Messages from './pages/Messages'
 import Reports from './pages/Reports'
 import Payments from './pages/Payments'
 import SingleProperty from './pages/SingleProperty'
+import UnitDetails from './pages/UnitDetails'
+import UsersPage from './pages/Users'
 import { ToastProvider } from './components/ui/Toast'
 
 import SettingsLayout from './pages/settings/SettingsLayout';
@@ -26,10 +28,10 @@ import LoginPage from './pages/LoginPage';
 
 const Page = ({ children }: { children: React.ReactNode }) => (
   <motion.div
-    initial={{ opacity: 0, filter: 'blur(5px)' }}
-    animate={{ opacity: 1, filter: 'blur(0px)' }}
-    exit={{ opacity: 0, filter: 'blur(5px)' }}
-    transition={{ duration: 0.25, ease: "easeInOut" }}
+    initial={{ opacity: 0, filter: 'blur(1px)', scale: 0.99 }}
+    animate={{ opacity: 1, filter: 'blur(0px)', scale: 1 }}
+    exit={{ opacity: 0, filter: 'blur(1px)', scale: 0.99 }}
+    transition={{ duration: 0.25, ease: "easeOut" }}
     className="h-full"
   >
     {children}
@@ -53,6 +55,7 @@ function AnimatedRoutes() {
         <Route path="/properties/new" element={<Page><AddProperty /></Page>} />
         <Route path="/properties/:id" element={<Page><SingleProperty /></Page>} />
         <Route path="/properties/:propertyId/units/new" element={<Page><AddUnit /></Page>} />
+        <Route path="/properties/:propertyId/units/:unitId" element={<Page><UnitDetails /></Page>} />
         <Route path="/tenants" element={<Page><Tenants /></Page>} />
         <Route path="/leases" element={<Page><Leases /></Page>} />
         <Route path="/maintenance" element={<Page><Maintenance /></Page>} />
@@ -61,6 +64,7 @@ function AnimatedRoutes() {
         <Route path="/messages" element={<Page><Messages /></Page>} />
         <Route path="/reports" element={<Page><Reports /></Page>} />
         <Route path="/payments" element={<Page><Payments /></Page>} />
+        <Route path="/users" element={<Page><UsersPage /></Page>} />
 
         {/* Settings Routes */}
         <Route path="/settings" element={<Page><SettingsLayout /></Page>}>
