@@ -142,7 +142,7 @@ const TabButton = ({ active, label, onClick, icon: Icon }: any) => (
 
 // --- Sections ---
 
-const OverviewTab = () => (
+const OverviewTab = ({ navigate }: { navigate: any }) => (
   <div className="grid grid-cols-1 md:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
     <div className="md:col-span-2 space-y-6">
       <div className="bg-card border rounded-xl overflow-hidden shadow-sm">
@@ -234,7 +234,10 @@ const OverviewTab = () => (
              <button className="flex items-center justify-center gap-2 py-2 px-3 bg-white dark:bg-card border rounded-md text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                <MessageSquare size={14} /> Message
              </button>
-             <button className="flex items-center justify-center gap-2 py-2 px-3 bg-white dark:bg-card border rounded-md text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+             <button 
+               onClick={() => navigate(`/tenants/${MOCK_TENANT.id}`)}
+               className="flex items-center justify-center gap-2 py-2 px-3 bg-white dark:bg-card border rounded-md text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+             >
                <UserPlus size={14} /> Profile
              </button>
            </div>
@@ -478,8 +481,8 @@ export default function UnitDetailsPage() {
 
   const renderContent = () => {
     switch(activeTab) {
-      case 'overview': return <OverviewTab />;
-      case 'tenant': return <OverviewTab />; // Tenant info is in Overview for now
+      case 'overview': return <OverviewTab navigate={navigate} />;
+      case 'tenant': return <OverviewTab navigate={navigate} />; // Tenant info is in Overview for now
       case 'lease': return <LeaseTab />;
       case 'maintenance': return <MaintenanceTab />;
       case 'financials': return <FinancialsTab />;

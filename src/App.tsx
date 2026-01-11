@@ -7,6 +7,7 @@ import Properties from './pages/Properties'
 import AddProperty from './pages/AddProperty'
 import AddUnit from './pages/AddUnit'
 import Tenants from './pages/Tenants'
+import TenantProfile from './pages/TenantProfile'
 import Leases from './pages/Leases'
 import Maintenance from './pages/Maintenance'
 import Accounting from './pages/Accounting'
@@ -57,6 +58,7 @@ function AnimatedRoutes() {
         <Route path="/properties/:propertyId/units/new" element={<Page><AddUnit /></Page>} />
         <Route path="/properties/:propertyId/units/:unitId" element={<Page><UnitDetails /></Page>} />
         <Route path="/tenants" element={<Page><Tenants /></Page>} />
+        <Route path="/tenants/:id" element={<Page><TenantProfile /></Page>} />
         <Route path="/leases" element={<Page><Leases /></Page>} />
         <Route path="/maintenance" element={<Page><Maintenance /></Page>} />
         <Route path="/accounting" element={<Page><Accounting /></Page>} />

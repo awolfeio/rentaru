@@ -11,7 +11,9 @@ import {
   Building,
   CheckCircle2,
   Clock,
-  Ban
+  Ban,
+  Wrench,
+  Briefcase
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { UserWithRole, UserStatus } from '@/types/auth';
@@ -44,9 +46,22 @@ const StatusBadge = ({ status }: { status: UserStatus }) => {
 };
 
 const RoleBadge = ({ roleName }: { roleName: string }) => {
+  let Icon = Shield;
+  
+  switch (roleName) {
+    case 'Maintenance':
+      Icon = Wrench;
+      break;
+    case 'Property Manager':
+      Icon = Briefcase;
+      break;
+    default:
+      Icon = Shield;
+  }
+
   return (
     <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-      <Shield size={10} className="mr-1 opacity-70" />
+      <Icon size={10} className="mr-1 opacity-70" />
       {roleName}
     </span>
   );

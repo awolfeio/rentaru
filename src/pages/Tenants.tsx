@@ -1,5 +1,6 @@
 
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Search, 
   Filter, 
@@ -12,7 +13,11 @@ import {
   Wrench,
   MoreVertical,
   CheckCircle,
-  AlertCircle
+
+  AlertCircle,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -50,6 +55,7 @@ const RentStatusBadge = ({ status }: { status: RentStatus }) => {
 };
 
 const TenantRow = ({ tenant }: { tenant: Tenant }) => {
+  const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
 
   const daysUntilLeaseEnd = Math.ceil((new Date(tenant.leaseEndDate).getTime() - new Date().getTime()) / (1000 * 3600 * 24));
@@ -229,7 +235,10 @@ const TenantRow = ({ tenant }: { tenant: Tenant }) => {
                             <button className="flex items-center gap-2 w-full px-3 py-2 text-sm font-medium text-foreground bg-white dark:bg-card border rounded-md hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-sm">
                                 <DollarSign size={14} className="text-muted-foreground" /> Record Payment
                             </button>
-                             <button className="flex items-center gap-2 w-full px-3 py-2 text-sm font-medium text-foreground bg-white dark:bg-card border rounded-md hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-sm">
+                             <button 
+                                onClick={() => navigate(`/tenants/${tenant.id}`)}
+                                className="flex items-center gap-2 w-full px-3 py-2 text-sm font-medium text-foreground bg-white dark:bg-card border rounded-md hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-sm"
+                            >
                                 <MoreVertical size={14} className="text-muted-foreground" /> View Profile & Docs
                             </button>
                         </div>
@@ -246,12 +255,25 @@ const TenantRow = ({ tenant }: { tenant: Tenant }) => {
 export default function TenantsPage() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilters, setActiveFilters] = useState<TenantFilterState>(INITIAL_FILTERS);
 
-  // --- Filtering Logic ---
+  const [activeFilters, setActiveFilters] = useState<TenantFilterState>(INITIAL_FILTERS);
+  const [sortConfig, setSortConfig] = useState<{ key: keyof Tenant; direction: 'asc' | 'desc' } | null>(null);
+
+  const handleSort = (key: keyof Tenant) => {
+    setSortConfig(current => {
+      if (current?.key === key) {
+        return { key, direction: current.direction === 'asc' ? 'desc' : 'asc' };
+      }
+      return { key, direction: 'asc' };
+    });
+  };
+
+  // --- Filtering & Sorting Logic ---
   
-  const filteredTenants = useMemo(() => {
-    return MOCK_TENANTS.filter(tenant => {
+  const filteredAndSortedTenants = useMemo(() => {
+    // 1. Filter
+    let result = MOCK_TENANTS.filter(tenant => {
+        // ... (existing filter logic)
         // 1. Search Query
         const searchLower = searchQuery.toLowerCase();
         const matchesSearch = 
@@ -262,41 +284,23 @@ export default function TenantsPage() {
         if (!matchesSearch) return false;
 
         // 2. Filters from Drawer
-        
-
-        // Tenant Status Filter
         if (activeFilters.status.length > 0) {
-            // We map 'status' filter to 'leaseStatus' field as that's our source of truth
             if (!activeFilters.status.includes(tenant.leaseStatus)) return false;
         }
-
-        
-        // Let's filter by `leaseStatus` if the filter is set.
         if (activeFilters.leaseStatus.length > 0) {
             if (!activeFilters.leaseStatus.includes(tenant.leaseStatus)) return false;
         }
-
-        // Rent Status
         if (activeFilters.rentStatus.length > 0) {
-            // Mapping check: The filter drawer uses lowercase string values matching the type
             if (!activeFilters.rentStatus.includes(tenant.rentStatus)) return false;
         }
-
-        // Properties
         if (activeFilters.propertyIds.length > 0) {
             if (!activeFilters.propertyIds.includes(tenant.propertyId)) return false;
         }
-
-        // Maintenance
         if (activeFilters.hasOpenTickets) {
             if (tenant.maintenanceRequestCount === 0) return false;
         }
-
-        // Balance Range
         if (activeFilters.balanceMin !== undefined && tenant.balance < activeFilters.balanceMin) return false;
         if (activeFilters.balanceMax !== undefined && tenant.balance > activeFilters.balanceMax) return false;
-
-        // Lease Expiration (Simple logic)
         if (activeFilters.leaseExpiringDays) {
             const daysUntil = Math.ceil((new Date(tenant.leaseEndDate).getTime() - new Date().getTime()) / (1000 * 3600 * 24));
             if (daysUntil < 0 || daysUntil > activeFilters.leaseExpiringDays) return false;
@@ -304,7 +308,24 @@ export default function TenantsPage() {
 
         return true;
     });
-  }, [searchQuery, activeFilters]);
+
+    // 2. Sort
+    if (sortConfig) {
+      result.sort((a, b) => {
+        const aValue = a[sortConfig.key];
+        const bValue = b[sortConfig.key];
+
+        if (aValue === bValue) return 0;
+        if (aValue === undefined || aValue === null) return 1;
+        if (bValue === undefined || bValue === null) return -1;
+        
+        const comparison = aValue > bValue ? 1 : -1;
+        return sortConfig.direction === 'asc' ? comparison : -comparison;
+      });
+    }
+
+    return result;
+  }, [searchQuery, activeFilters, sortConfig]);
 
   // Count active filters for badge
   const activeCount = 
@@ -316,12 +337,25 @@ export default function TenantsPage() {
       (activeFilters.leaseExpiringDays ? 1 : 0) + 
       (activeFilters.balanceMin || activeFilters.balanceMax ? 1 : 0);
 
-  const clearFilter = (key: keyof TenantFilterState) => { // reset specific is hard with this structure without complex logic, 
-      // simplified to just remove from array or undefined
-      // For MVP just full reset is fine or toggle off chips if implemented.
-      // We will skip individual chip dismissal logic for this specific artifact to save space/time, 
-      // relying on the drawer to clear.
-  };
+
+
+  const SortHeader = ({ label, sortKey, className }: { label: string, sortKey: keyof Tenant, className?: string }) => (
+    <div 
+        onClick={() => handleSort(sortKey)}
+        className={cn(
+            "flex items-center gap-1 cursor-pointer hover:text-foreground transition-colors select-none", 
+            sortConfig?.key === sortKey ? "text-primary font-bold" : "",
+            className
+        )}
+    >
+        {label}
+        {sortConfig?.key === sortKey ? (
+            sortConfig.direction === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />
+        ) : (
+            <ArrowUpDown size={12} className="opacity-0 group-hover:opacity-50 transition-opacity" />
+        )}
+    </div>
+  );
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -388,8 +422,28 @@ export default function TenantsPage() {
 
       {/* Tenant List */}
       <div className="space-y-3">
-        {filteredTenants.length > 0 ? (
-            filteredTenants.map(t => (
+        {/* Table Header - Aligned with TenantRow flexible layout */}
+        <div className="hidden md:flex px-4 py-2 items-center gap-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider group">
+             {/* Identity */}
+             <div className="flex-1 min-w-[200px]">
+                <SortHeader label="Tenant" sortKey="name" />
+             </div>
+             {/* Property */}
+             <div className="flex-1 max-w-[200px]">
+                <SortHeader label="Property" sortKey="propertyName" />
+             </div>
+             {/* Status Grid */}
+             <div className="flex-[2] grid grid-cols-3 gap-4">
+                 <SortHeader label="Lease" sortKey="leaseStatus" />
+                 <SortHeader label="Status" sortKey="rentStatus" />
+                 <SortHeader label="Balance" sortKey="balance" />
+             </div>
+             {/* Actions Spacer */}
+             <div className="min-w-[50px]"></div>
+        </div>
+
+        {filteredAndSortedTenants.length > 0 ? (
+            filteredAndSortedTenants.map(t => (
                 <TenantRow key={t.id} tenant={t} />
             ))
         ) : (

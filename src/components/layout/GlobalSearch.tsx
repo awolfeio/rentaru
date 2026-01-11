@@ -140,8 +140,8 @@ export function GlobalSearch() {
     return (
         <div ref={containerRef} className="relative z-50">
             <div className={cn(
-                "relative flex items-center transition-all duration-200 ease-out h-9 rounded-md px-3 gap-2 border bg-muted/40 hover:bg-muted/60 w-[600px]",
-                isOpen ? "border-primary ring-2 ring-primary/20 bg-background shadow-lg" : "border-transparent"
+                "relative flex items-center transition-all duration-200 ease-out h-10 rounded-full px-4 gap-2 border w-[600px]",
+                isOpen ? "border-primary ring-4 ring-primary/10 bg-background shadow-xl" : "border-border/60 bg-muted/40 hover:bg-muted/60 hover:border-border"
             )}>
                 <Search className={cn(
                     "w-4 h-4 transition-colors duration-200",
