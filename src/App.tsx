@@ -1,103 +1,65 @@
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
+import { ToastProvider } from '@/shared/components/ui/Toast';
 
-import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom'
-import { AnimatePresence, motion } from 'framer-motion'
-import { MainLayout } from './components/layout/MainLayout'
-import Dashboard from './pages/Dashboard'
-import Properties from './pages/Properties'
-import AddProperty from './pages/AddProperty'
-import AddUnit from './pages/AddUnit'
-import Tenants from './pages/Tenants'
-import TenantProfile from './pages/TenantProfile'
-import Leases from './pages/Leases'
-import Maintenance from './pages/Maintenance'
-import Accounting from './pages/Accounting'
-import Documents from './pages/Documents'
-import Messages from './pages/Messages'
-import Reports from './pages/Reports'
-import Payments from './pages/Payments'
-import SingleProperty from './pages/SingleProperty'
-import UnitDetails from './pages/UnitDetails'
-import UsersPage from './pages/Users'
-import { ToastProvider } from './components/ui/Toast'
+// Layouts
+import { AppLayout } from '@/app/layouts/AppLayout';
+import { TenantLayout } from '@/tenant/layouts/TenantLayout';
 
-import SettingsLayout from './pages/settings/SettingsLayout';
-import AccountSettings from './pages/settings/AccountSettings';
-import BillingSettings from './pages/settings/BillingSettings';
-import SecuritySettings from './pages/settings/SecuritySettings';
-import PlaceholderSettings from './pages/settings/PlaceholderSettings';
-import LoginPage from './pages/LoginPage';
+// Routes
+import { appRoutes } from '@/app/routes';
+import { tenantRoutes } from '@/tenant/routes';
 
-const Page = ({ children }: { children: React.ReactNode }) => (
-  <motion.div
-    initial={{ opacity: 0, filter: 'blur(1px)', scale: 0.99 }}
-    animate={{ opacity: 1, filter: 'blur(0px)', scale: 1 }}
-    exit={{ opacity: 0, filter: 'blur(1px)', scale: 0.99 }}
-    transition={{ duration: 0.25, ease: "easeOut" }}
-    className="h-full"
-  >
-    {children}
-  </motion.div>
-)
+// Pages
+import LoginPage from '@/app/pages/LoginPage';
 
-function AnimatedRoutes() {
-  const location = useLocation()
-
-  const getPageKey = (pathname: string) => {
-    if (pathname.startsWith('/settings')) return '/settings';
-    return pathname;
-  };
-
-  return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={getPageKey(location.pathname)}>
-        <Route path="/" element={<Page><Dashboard /></Page>} />
-        {/* ... existing routes ... */}
-        <Route path="/properties" element={<Page><Properties /></Page>} />
-        <Route path="/properties/new" element={<Page><AddProperty /></Page>} />
-        <Route path="/properties/:id" element={<Page><SingleProperty /></Page>} />
-        <Route path="/properties/:propertyId/units/new" element={<Page><AddUnit /></Page>} />
-        <Route path="/properties/:propertyId/units/:unitId" element={<Page><UnitDetails /></Page>} />
-        <Route path="/tenants" element={<Page><Tenants /></Page>} />
-        <Route path="/tenants/:id" element={<Page><TenantProfile /></Page>} />
-        <Route path="/leases" element={<Page><Leases /></Page>} />
-        <Route path="/maintenance" element={<Page><Maintenance /></Page>} />
-        <Route path="/accounting" element={<Page><Accounting /></Page>} />
-        <Route path="/documents" element={<Page><Documents /></Page>} />
-        <Route path="/messages" element={<Page><Messages /></Page>} />
-        <Route path="/reports" element={<Page><Reports /></Page>} />
-        <Route path="/payments" element={<Page><Payments /></Page>} />
-        <Route path="/users" element={<Page><UsersPage /></Page>} />
-
-        {/* Settings Routes */}
-        <Route path="/settings" element={<Page><SettingsLayout /></Page>}>
-          <Route index element={<Navigate to="account" replace />} />
-          <Route path="account" element={<AccountSettings />} />
-          <Route path="billing" element={<BillingSettings />} />
-          <Route path="security" element={<SecuritySettings />} />
-          <Route path="notifications" element={<PlaceholderSettings title="Notifications" />} />
-          <Route path="organization" element={<PlaceholderSettings title="Organization Profile" />} />
-          <Route path="appearance" element={<PlaceholderSettings title="Appearance" />} />
-        </Route>
-      </Routes>
-    </AnimatePresence>
-  )
+function TenantApp() {
+    return (
+        <TenantLayout>
+             <Routes>
+                {tenantRoutes}
+             </Routes>
+        </TenantLayout>
+    );
 }
+
+function OperatorApp() {
+    const location = useLocation();
+    
+    const getPageKey = (pathname: string) => {
+        if (pathname.includes('/settings')) return 'settings';
+        return pathname;
+    };
+
+    return (
+        <AppLayout>
+             <AnimatePresence mode="wait">
+                 <Routes location={location} key={getPageKey(location.pathname)}>
+                    {appRoutes}
+                 </Routes>
+             </AnimatePresence>
+        </AppLayout>
+    );
+}
+
+import { DevContextSwitcher } from '@/shared/components/DevContextSwitcher';
 
 function App() {
   return (
     <BrowserRouter>
       <ToastProvider>
+        <DevContextSwitcher />
         <Routes>
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/*" element={
-            <MainLayout>
-              <AnimatedRoutes />
-            </MainLayout>
-          } />
+          
+          <Route path="/app/*" element={<OperatorApp />} />
+          <Route path="/tenant/*" element={<TenantApp />} />
+          
+          <Route path="/" element={<Navigate to="/app" replace />} />
         </Routes>
       </ToastProvider>
     </BrowserRouter>
   )
 }
 
-export default App
+export default App;

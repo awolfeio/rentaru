@@ -14,6 +14,9 @@ export default {
       },
     },
     extend: {
+      screens: {
+        'tall-desktop': { 'raw': '(min-width: 1024px) and (min-height: 800px)' },
+      },
       fontFamily: {
         sans: ['"Plus Jakarta Sans"', 'sans-serif'],
       },
