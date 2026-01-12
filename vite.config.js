@@ -6,6 +6,7 @@ var __filename = fileURLToPath(import.meta.url);
 var __dirname = path.dirname(__filename);
 // https://vitejs.dev/config/
 export default defineConfig({
+    base: '/rentaru/',
     plugins: [react()],
     resolve: {
         alias: {

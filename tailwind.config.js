@@ -56,24 +56,24 @@ export default {
         },
         // Premium custom palette extension
         brand: {
-            50: '#f0f9ff',
-            100: '#e0f2fe',
-            200: '#bae6fd',
-            300: '#7dd3fc',
-            400: '#38bdf8',
-            500: '#0ea5e9', // Sky blue
-            600: '#0284c7',
-            700: '#0369a1',
-            800: '#075985',
-            900: '#0c4a6e',
-            950: '#082f49',
+          50: '#f0f9ff',
+          100: '#e0f2fe',
+          200: '#bae6fd',
+          300: '#7dd3fc',
+          400: '#38bdf8',
+          500: '#0ea5e9', // Sky blue
+          600: '#0284c7',
+          700: '#0369a1',
+          800: '#075985',
+          900: '#0c4a6e',
+          950: '#082f49',
         },
         sidebar: {
-            DEFAULT: '#0f172a', // Slate 900
-            hover: '#1e293b',   // Slate 800
-            active: '#334155',  // Slate 700
-            text: '#94a3b8',    // Slate 400
-            textActive: '#f8fafc', // Slate 50
+          DEFAULT: '#0f172a', // Slate 900
+          hover: '#1e293b',   // Slate 800
+          active: '#334155',  // Slate 700
+          text: '#94a3b8',    // Slate 400
+          textActive: '#f8fafc', // Slate 50
         }
       },
       borderRadius: {
