@@ -14,47 +14,47 @@ import { tenantRoutes } from '@/tenant/routes';
 import LoginPage from '@/app/pages/LoginPage';
 
 function TenantApp() {
-    return (
-        <TenantLayout>
-             <Routes>
-                {tenantRoutes}
-             </Routes>
-        </TenantLayout>
-    );
+  return (
+    <TenantLayout>
+      <Routes>
+        {tenantRoutes}
+      </Routes>
+    </TenantLayout>
+  );
 }
 
 function OperatorApp() {
-    const location = useLocation();
-    
-    const getPageKey = (pathname: string) => {
-        if (pathname.includes('/settings')) return 'settings';
-        return pathname;
-    };
+  const location = useLocation();
 
-    return (
-        <AppLayout>
-             <AnimatePresence mode="wait">
-                 <Routes location={location} key={getPageKey(location.pathname)}>
-                    {appRoutes}
-                 </Routes>
-             </AnimatePresence>
-        </AppLayout>
-    );
+  const getPageKey = (pathname: string) => {
+    if (pathname.includes('/settings')) return 'settings';
+    return pathname;
+  };
+
+  return (
+    <AppLayout>
+      <AnimatePresence mode="wait">
+        <Routes location={location} key={getPageKey(location.pathname)}>
+          {appRoutes}
+        </Routes>
+      </AnimatePresence>
+    </AppLayout>
+  );
 }
 
 import { DevContextSwitcher } from '@/shared/components/DevContextSwitcher';
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <ToastProvider>
         <DevContextSwitcher />
         <Routes>
           <Route path="/login" element={<LoginPage />} />
-          
+
           <Route path="/app/*" element={<OperatorApp />} />
           <Route path="/tenant/*" element={<TenantApp />} />
-          
+
           <Route path="/" element={<Navigate to="/app" replace />} />
         </Routes>
       </ToastProvider>

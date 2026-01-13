@@ -2,14 +2,13 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Repeat } from 'lucide-react';
 
 export function DevContextSwitcher() {
-  // Only show in development
-  if (!import.meta.env.DEV) return null;
+
 
   const navigate = useNavigate();
   const location = useLocation();
 
   const isTenant = location.pathname.startsWith('/tenant');
-  
+
   const toggleContext = () => {
     if (isTenant) {
       navigate('/app');

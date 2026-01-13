@@ -16,6 +16,8 @@ import {
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/shared/lib/utils';
 
+import logo from '@/shared/assets/rentaru.svg';
+
 const NAV_GROUPS = [
   {
     label: 'Core',
@@ -56,7 +58,7 @@ export function Sidebar() {
     <aside className="fixed left-0 top-0 z-30 w-64 h-screen bg-sidebar text-sidebar-text border-r border-sidebar-hover flex flex-col pt-6 tall-desktop:pt-12">
       <div className="px-6 mb-6 tall-desktop:mb-12 shrink-0">
         <div className="flex items-center gap-2">
-          <img src="/images/rentaru.svg" alt="Rentaru" className="h-6 w-auto" />
+          <img src={logo} alt="Rentaru" className="h-6 w-auto" />
         </div>
       </div>
 
