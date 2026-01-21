@@ -23,6 +23,7 @@ import AccountSettings from './pages/settings/AccountSettings';
 import BillingSettings from './pages/settings/BillingSettings';
 import SecuritySettings from './pages/settings/SecuritySettings';
 import PlaceholderSettings from './pages/settings/PlaceholderSettings';
+import NotificationsSettings from './pages/settings/NotificationsSettings';
 
 const Page = ({ children }: { children: React.ReactNode }) => (
   <motion.div
@@ -65,7 +66,7 @@ export const appRoutes = (
       <Route path="account" element={<AccountSettings />} />
       <Route path="billing" element={<BillingSettings />} />
       <Route path="security" element={<SecuritySettings />} />
-      <Route path="notifications" element={<PlaceholderSettings title="Notifications" />} />
+      <Route path="notifications" element={<NotificationsSettings />} />
       <Route path="organization" element={<PlaceholderSettings title="Organization Profile" />} />
       <Route path="appearance" element={<PlaceholderSettings title="Appearance" />} />
     </Route>

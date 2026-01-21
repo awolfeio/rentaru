@@ -61,7 +61,7 @@ export default function TenantProfile() {
                 </div>
                 <h2 className="text-xl font-semibold">Tenant Not Found</h2>
                 <p className="text-muted-foreground mt-2 mb-6">The tenant profile you are looking for does not exist.</p>
-                <button onClick={() => navigate('/tenants')} className="text-primary hover:underline">
+                <button onClick={() => navigate('/app/tenants')} className="text-primary hover:underline">
                     Return to Tenants List
                 </button>
             </div>

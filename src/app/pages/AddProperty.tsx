@@ -207,7 +207,7 @@ export default function AddProperty() {
                         </button>
                     ) : (
                         <button
-                            onClick={() => navigate('/properties')}
+                            onClick={() => navigate('/app/properties')}
                             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                         >
                             Cancel
@@ -218,7 +218,7 @@ export default function AddProperty() {
                         <button
                             onClick={() => {
                                 toast({ type: 'success', title: 'Property Created', message: `${formData.name} has been added to your portfolio.` });
-                                navigate('/properties');
+                                navigate('/app/properties');
                             }}
                             className="flex items-center gap-2 bg-primary text-primary-foreground px-6 py-2 rounded-lg font-medium hover:bg-primary/90 transition-colors"
                         >

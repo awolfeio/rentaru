@@ -1,4 +1,4 @@
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Activity } from 'lucide-react';
 
 export function PropertiesSnapshot() {
     return (
@@ -12,7 +12,7 @@ export function PropertiesSnapshot() {
                             <th className="px-4 py-3 text-left font-medium text-muted-foreground">Property</th>
                             <th className="px-4 py-3 text-left font-medium text-muted-foreground w-20">Units</th>
                             <th className="px-4 py-3 text-left font-medium text-muted-foreground w-24">Occupancy</th>
-                            <th className="px-4 py-3 text-left font-medium text-muted-foreground w-20">Status</th>
+                            <th className="px-4 py-3 text-left font-medium text-muted-foreground w-24">Stability</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
@@ -23,7 +23,10 @@ export function PropertiesSnapshot() {
                             </td>
                             <td className="px-4 py-3 text-muted-foreground">12</td>
                             <td className="px-4 py-3 text-green-600 font-medium">92%</td>
-                            <td className="px-4 py-3">⚠️</td>
+                            <td className="px-4 py-3 font-bold text-blue-600 flex items-center gap-1.5">
+                                78
+                                <Activity className="w-3.5 h-3.5" />
+                            </td>
                         </tr>
                          <tr className="group hover:bg-muted/30 transition-colors cursor-pointer">
                             <td className="px-4 py-3 font-medium text-foreground flex items-center gap-2">
@@ -32,7 +35,10 @@ export function PropertiesSnapshot() {
                             </td>
                             <td className="px-4 py-3 text-muted-foreground">2</td>
                             <td className="px-4 py-3 text-green-600 font-medium">100%</td>
-                            <td className="px-4 py-3">—</td>
+                            <td className="px-4 py-3 font-bold text-green-600 flex items-center gap-1.5">
+                                96
+                                <Activity className="w-3.5 h-3.5" />
+                            </td>
                         </tr>
                         <tr className="group hover:bg-muted/30 transition-colors cursor-pointer">
                             <td className="px-4 py-3 font-medium text-foreground flex items-center gap-2">
@@ -41,7 +47,10 @@ export function PropertiesSnapshot() {
                             </td>
                             <td className="px-4 py-3 text-muted-foreground">24</td>
                             <td className="px-4 py-3 text-amber-600 font-medium">85%</td>
-                            <td className="px-4 py-3">💸</td>
+                            <td className="px-4 py-3 font-bold text-amber-600 flex items-center gap-1.5">
+                                58
+                                <Activity className="w-3.5 h-3.5" />
+                            </td>
                         </tr>
                     </tbody>
                 </table>

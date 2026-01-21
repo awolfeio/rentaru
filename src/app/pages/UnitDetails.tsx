@@ -235,7 +235,7 @@ const OverviewTab = ({ navigate }: { navigate: any }) => (
                <MessageSquare size={14} /> Message
              </button>
              <button 
-               onClick={() => navigate(`/tenants/${MOCK_TENANT.id}`)}
+               onClick={() => navigate(`/app/tenants/${MOCK_TENANT.id}`)}
                className="flex items-center justify-center gap-2 py-2 px-3 bg-white dark:bg-card border rounded-md text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
              >
                <UserPlus size={14} /> Profile
@@ -498,9 +498,9 @@ export default function UnitDetailsPage() {
       {/* 1. Header & Breadcrumb */}
       <div className="space-y-4">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span className="hover:text-foreground cursor-pointer" onClick={() => navigate('/properties')}>Properties</span>
+          <span className="hover:text-foreground cursor-pointer" onClick={() => navigate('/app/properties')}>Properties</span>
           <span>/</span>
-          <span className="hover:text-foreground cursor-pointer" onClick={() => navigate(`/properties/${propertyId}`)}>{propertyName}</span>
+          <span className="hover:text-foreground cursor-pointer" onClick={() => navigate(`/app/properties/${propertyId}`)}>{propertyName}</span>
           <span>/</span>
           <span className="text-foreground font-medium">Unit {MOCK_UNIT.unitNumber}</span>
         </div>

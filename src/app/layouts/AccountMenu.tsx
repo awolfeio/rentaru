@@ -103,9 +103,9 @@ export function AccountMenu() {
                             {/* Account Settings */}
                             <div className="px-2 py-1">
                                 <div className="space-y-1">
-                                    <MenuButton icon={Settings} label="Account Settings" onClick={() => handleNavigate('/settings/account')} />
-                                    <MenuButton icon={CreditCard} label="Billing & Plan" onClick={() => handleNavigate('/settings/billing')} />
-                                    <MenuButton icon={ShieldCheck} label="Security & Compliance" onClick={() => handleNavigate('/settings/security')} />
+                                    <MenuButton icon={Settings} label="Account Settings" onClick={() => handleNavigate('/app/settings/account')} />
+                                    <MenuButton icon={CreditCard} label="Billing & Plan" onClick={() => handleNavigate('/app/settings/billing')} />
+                                    <MenuButton icon={ShieldCheck} label="Security & Compliance" onClick={() => handleNavigate('/app/settings/security')} />
                                 </div>
                             </div>
 
