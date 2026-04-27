@@ -12,6 +12,11 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/shared/lib/utils';
 import { format } from 'date-fns';
+import { RecordManualPaymentDrawer } from '@/features/payments/components/RecordManualPaymentDrawer';
+import { Payment } from '@/features/payments/types';
+import { CreateMaintenanceTicketModal } from '@/shared/components/maintenance/CreateTicketModal';
+import { TicketRow } from '@/shared/components/maintenance/TicketRow';
+import { MOCK_TICKETS } from '@/shared/mockData/maintenance';
 
 // Types based on the plan
 type TabType = 'overview' | 'leases' | 'payments' | 'maintenance' | 'documents' | 'messages' | 'household' | 'notes' | 'activity';
@@ -50,6 +55,8 @@ export default function TenantProfile() {
     const { id } = useParams();
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState<TabType>('overview');
+    const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
+    const [createTicketOpen, setCreateTicketOpen] = useState(false);
 
     const tenant = MOCK_TENANTS.find(t => t.id === id);
 
@@ -180,10 +187,11 @@ export default function TenantProfile() {
                             >
                                 {activeTab === 'overview' && <OverviewTab tenant={tenant} />}
                                 {activeTab === 'leases' && <LeasesTab tenant={tenant} />}
-                                {activeTab === 'payments' && <PaymentsTab tenant={tenant} />}
+                                {activeTab === 'payments' && <PaymentsTab tenant={tenant} onRecordPayment={() => setRecordPaymentOpen(true)} />}
                                 {activeTab === 'household' && <HouseholdTab tenant={tenant} />}
                                 {activeTab === 'activity' && <ActivityTab tenant={tenant} />}
-                                {['maintenance', 'documents', 'messages', 'notes'].includes(activeTab) && (
+                                {activeTab === 'maintenance' && <MaintenanceTab tenant={tenant} />}
+                                {['documents', 'messages', 'notes'].includes(activeTab) && (
                                     <div className="p-12 text-center border rounded-xl border-dashed bg-muted/30">
                                         <Wrench className="w-12 h-12 text-muted-foreground/20 mx-auto mb-4" />
                                         <h3 className="text-lg font-medium text-foreground">Work in Progress</h3>
@@ -206,13 +214,13 @@ export default function TenantProfile() {
                                     </div>
                                     Message Tenant
                                 </button>
-                                <button className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-foreground bg-secondary/50 hover:bg-secondary rounded-lg transition-colors text-left group">
+                                <button onClick={() => setRecordPaymentOpen(true)} className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-foreground bg-secondary/50 hover:bg-secondary rounded-lg transition-colors text-left group">
                                     <div className="p-1.5 bg-background rounded-md shadow-sm group-hover:scale-105 transition-transform">
                                         <CreditCard className="w-4 h-4 text-emerald-600" />
                                     </div>
                                     Record Payment
                                 </button>
-                                <button className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-foreground bg-secondary/50 hover:bg-secondary rounded-lg transition-colors text-left group">
+                                <button onClick={() => setCreateTicketOpen(true)} className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-foreground bg-secondary/50 hover:bg-secondary rounded-lg transition-colors text-left group">
                                     <div className="p-1.5 bg-background rounded-md shadow-sm group-hover:scale-105 transition-transform">
                                         <Wrench className="w-4 h-4 text-amber-600" />
                                     </div>
@@ -255,6 +263,25 @@ export default function TenantProfile() {
                     </div>
                 </div>
             </div>
+
+            <RecordManualPaymentDrawer
+                isOpen={recordPaymentOpen}
+                onClose={() => setRecordPaymentOpen(false)}
+                onSubmit={() => setRecordPaymentOpen(false)}
+                preselectedTenantId={tenant.id}
+            />
+
+            <CreateMaintenanceTicketModal
+                isOpen={createTicketOpen}
+                onClose={() => setCreateTicketOpen(false)}
+                onCreate={() => setCreateTicketOpen(false)}
+                initialData={{
+                    propertyId: tenant.propertyId,
+                    propertyName: tenant.propertyName,
+                    unitId: tenant.unitId,
+                    unitNumber: tenant.unitNumber
+                }}
+            />
         </div>
     );
 }
@@ -386,7 +413,7 @@ function LeasesTab({ tenant }: { tenant: any }) {
     );
 }
 
-function PaymentsTab({ tenant }: { tenant: any }) {
+function PaymentsTab({ tenant, onRecordPayment }: { tenant: any, onRecordPayment: () => void }) {
     return (
         <div className="bg-card rounded-xl border shadow-sm">
              <div className="px-6 py-4 border-b flex items-center justify-between">
@@ -395,7 +422,7 @@ function PaymentsTab({ tenant }: { tenant: any }) {
                     <button className="text-xs font-medium px-3 py-1.5 rounded-md hover:bg-muted transition-colors flex items-center gap-1">
                         <Download className="w-3.5 h-3.5" /> Export
                     </button>
-                    <button className="text-xs font-medium px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center gap-1">
+                    <button onClick={onRecordPayment} className="text-xs font-medium px-3 py-1.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors flex items-center gap-1">
                         <Plus className="w-3.5 h-3.5" /> Record Payment
                     </button>
                 </div>
@@ -432,6 +459,29 @@ function PaymentsTab({ tenant }: { tenant: any }) {
                         </tr>
                     </tbody>
                 </table>
+            </div>
+        </div>
+    );
+}
+
+function MaintenanceTab({ tenant }: { tenant: any }) {
+    const tenantTickets = MOCK_TICKETS.slice(0, 3).map(t => ({
+        ...t,
+        propertyId: tenant.propertyId,
+        propertyName: tenant.propertyName,
+        unitId: tenant.unitId,
+        unitNumber: tenant.unitNumber
+    }));
+
+    return (
+        <div className="space-y-4">
+             <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-sm">Maintenance Tickets</h3>
+            </div>
+            <div className="space-y-3">
+                {tenantTickets.map(ticket => (
+                    <TicketRow key={ticket.id} ticket={ticket} />
+                ))}
             </div>
         </div>
     );

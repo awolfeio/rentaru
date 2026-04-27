@@ -18,24 +18,8 @@ import {
 import { cn } from '@/shared/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// --- Types ---
-
-type DocumentType = 'lease' | 'notice' | 'report' | 'invoice' | 'other';
-type DocumentStatus = 'signed' | 'unsigned' | 'expired' | 'draft';
-type RelatedEntityType = 'property' | 'unit' | 'tenant' | 'lease';
-
-interface DocRecord {
-  id: string;
-  name: string;
-  type: DocumentType;
-  status: DocumentStatus;
-  relatedEntityType: RelatedEntityType;
-  relatedEntityName: string;
-  size: string;
-  uploadedAt: string;
-  signedAt?: string;
-  uploadedBy: string;
-}
+import { DocumentType, DocumentStatus, RelatedEntityType, DocRecord } from '@/shared/types/document';
+import { DocumentViewerModal } from '@/shared/components/documents/DocumentViewerModal';
 
 // --- Mock Data ---
 
@@ -50,7 +34,9 @@ const MOCK_DOCS: DocRecord[] = [
     size: '2.4 MB',
     uploadedAt: '2023-12-15',
     signedAt: '2023-12-20',
-    uploadedBy: 'System'
+    uploadedBy: 'System',
+    fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+    mimeType: 'application/pdf'
   },
   {
     id: 'd2',
@@ -61,7 +47,9 @@ const MOCK_DOCS: DocRecord[] = [
     relatedEntityName: 'Highland Lofts - 102',
     size: '4.1 MB',
     uploadedAt: '2024-01-02',
-    uploadedBy: 'Mike Ross (Tenant)'
+    uploadedBy: 'Mike Ross (Tenant)',
+    fileUrl: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    mimeType: 'image/jpeg'
   },
   {
     id: 'd3',
@@ -72,7 +60,9 @@ const MOCK_DOCS: DocRecord[] = [
     relatedEntityName: 'David Wilson',
     size: '145 KB',
     uploadedAt: '2024-01-04',
-    uploadedBy: 'Property Manager'
+    uploadedBy: 'Property Manager',
+    fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+    mimeType: 'application/pdf'
   },
   {
     id: 'd4',
@@ -83,7 +73,9 @@ const MOCK_DOCS: DocRecord[] = [
     relatedEntityName: 'Oak Street Apartments',
     size: '88 KB',
     uploadedAt: '2023-12-28',
-    uploadedBy: 'Rapid Plumbers Co.'
+    uploadedBy: 'Rapid Plumbers Co.',
+    fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+    mimeType: 'application/pdf'
   }
 ];
 
@@ -117,7 +109,7 @@ const FileIcon = ({ type }: { type: DocumentType }) => {
     }
 }
 
-const DocumentRow = ({ doc }: { doc: DocRecord }) => {
+const DocumentRow = ({ doc, onView }: { doc: DocRecord, onView: (doc: DocRecord) => void }) => {
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -204,7 +196,7 @@ const DocumentRow = ({ doc }: { doc: DocRecord }) => {
                     <div className="space-y-4">
                         <div className="font-semibold text-xs uppercase tracking-wider text-muted-foreground mb-1">Actions</div>
                         <div className="flex flex-wrap gap-2">
-                             <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium border rounded-md hover:bg-white dark:hover:bg-slate-800 transition-colors bg-card shadow-sm">
+                             <button onClick={() => onView(doc)} className="flex items-center gap-2 px-3 py-2 text-sm font-medium border rounded-md hover:bg-white dark:hover:bg-slate-800 transition-colors bg-card shadow-sm">
                                  <Eye size={14} /> View
                              </button>
                              <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium border rounded-md hover:bg-white dark:hover:bg-slate-800 transition-colors bg-card shadow-sm">
@@ -225,6 +217,14 @@ const DocumentRow = ({ doc }: { doc: DocRecord }) => {
 };
 
 export default function DocumentsPage() {
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState<DocRecord | null>(null);
+
+  const handleView = (doc: DocRecord) => {
+      setSelectedDocument(doc);
+      setViewerOpen(true);
+  };
+
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       
@@ -268,10 +268,18 @@ export default function DocumentsPage() {
         </div>
         <div className="divide-y divide-border/50">
             {MOCK_DOCS.map(doc => (
-                <DocumentRow key={doc.id} doc={doc} />
+                <DocumentRow key={doc.id} doc={doc} onView={handleView} />
             ))}
         </div>
       </div>
+
+      <DocumentViewerModal
+          open={viewerOpen}
+          onOpenChange={setViewerOpen}
+          document={selectedDocument}
+          onDownload={(doc) => console.log('Downloading', doc.name)}
+          onArchive={(doc) => console.log('Archiving', doc.name)}
+      />
 
     </div>
   );

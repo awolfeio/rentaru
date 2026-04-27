@@ -177,11 +177,52 @@ const DetailDrawer = ({ request, onClose }: { request: MaintenanceRequest | null
             {/* Scrollable Content */}
             <div className="flex-1 overflow-y-auto p-6 space-y-8">
               
-              {/* Description */}
+              {/* Description + Access */}
               <section className="space-y-3">
                 <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Issue Details</h3>
-                <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border text-sm leading-relaxed">
-                  {request.description}
+                <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4 items-start">
+                  {/* Description */}
+                  <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border text-sm leading-relaxed min-h-[72px]">
+                    {request.description}
+                  </div>
+
+                  {/* Access Panel */}
+                  <div className="flex flex-col gap-2 min-w-[200px]">
+                    {/* Entry Permission */}
+                    <div className={cn(
+                      "flex items-center gap-3 px-3 py-2.5 rounded-xl border",
+                      request.allowEntryWithoutTenant
+                        ? "bg-emerald-50 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-800"
+                        : "bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800"
+                    )}>
+                      <div className={cn(
+                        "p-1.5 rounded-full shrink-0",
+                        request.allowEntryWithoutTenant ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-900 dark:text-emerald-400" : "bg-amber-100 text-amber-600 dark:bg-amber-900 dark:text-amber-400"
+                      )}>
+                        {request.allowEntryWithoutTenant ? <Check size={13} /> : <X size={13} />}
+                      </div>
+                      <div>
+                        <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Entry</div>
+                        <div className={cn(
+                          "text-xs font-medium",
+                          request.allowEntryWithoutTenant ? "text-emerald-700 dark:text-emerald-400" : "text-amber-700 dark:text-amber-400"
+                        )}>
+                          {request.allowEntryWithoutTenant ? "Key/code access granted" : "Must be present"}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Time Window */}
+                    <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl border bg-slate-50 border-slate-200 dark:bg-slate-900 dark:border-slate-700">
+                      <div className="p-1.5 rounded-full bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400 shrink-0">
+                        <Clock size={13} />
+                      </div>
+                      <div>
+                        <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Access Window</div>
+                        <div className="text-xs font-medium text-foreground">{request.preferredAccessTimes || 'Anytime'}</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </section>
 
@@ -215,30 +256,7 @@ const DetailDrawer = ({ request, onClose }: { request: MaintenanceRequest | null
                 )}
               </section>
 
-              {/* Access Info */}
-              <section className="space-y-3">
-                <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Access & Logistics</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 rounded-xl border flex items-center gap-3">
-                     <div className={cn("p-2 rounded-full", request.allowEntryWithoutTenant ? "bg-emerald-100 text-emerald-600" : "bg-slate-100 text-slate-500")}>
-                        {request.allowEntryWithoutTenant ? <Check size={16} /> : <X size={16} />}
-                     </div>
-                     <div>
-                       <div className="text-sm font-medium">Entry Permission</div>
-                       <div className="text-xs text-muted-foreground">{request.allowEntryWithoutTenant ? "Granted (Key/Code)" : "Tenant must be present"}</div>
-                     </div>
-                  </div>
-                  <div className="p-4 rounded-xl border flex items-center gap-3">
-                     <div className={cn("p-2 rounded-full bg-slate-100 text-slate-500")}>
-                        <Clock size={16} />
-                     </div>
-                     <div>
-                       <div className="text-sm font-medium">Timing</div>
-                       <div className="text-xs text-muted-foreground">{request.preferredAccessTimes || "Anytime"}</div>
-                     </div>
-                  </div>
-                </div>
-              </section>
+
 
               {/* Timeline / Chat */}
               <section className="space-y-4 pt-4 border-t">

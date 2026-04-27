@@ -29,6 +29,8 @@ import {
 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { UnitModal, UnitFormData } from '@/shared/components/properties/UnitModal';
+import { CreateMaintenanceTicketModal } from '@/shared/components/maintenance/CreateTicketModal';
 
 // --- Mock Data ---
 
@@ -311,11 +313,14 @@ const LeaseTab = () => (
   </div>
 );
 
-const MaintenanceTab = () => (
+const MaintenanceTab = ({ onNewTicket }: { onNewTicket: () => void }) => (
    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
      <div className="flex justify-between items-center">
        <h3 className="font-semibold">Work Orders</h3>
-       <button className="bg-primary text-primary-foreground px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-primary/90 flex items-center gap-2">
+       <button
+         onClick={onNewTicket}
+         className="bg-primary text-primary-foreground px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-primary/90 flex items-center gap-2"
+       >
          <Wrench size={16} /> New Ticket
        </button>
      </div>
@@ -475,6 +480,8 @@ export default function UnitDetailsPage() {
   const { propertyId, unitId } = useParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
+  const [isEditUnitOpen, setIsEditUnitOpen] = useState(false);
+  const [isNewTicketOpen, setIsNewTicketOpen] = useState(false);
 
   // Breadcrumbs logic mock
   const propertyName = MOCK_UNIT.propertyName; 
@@ -482,9 +489,9 @@ export default function UnitDetailsPage() {
   const renderContent = () => {
     switch(activeTab) {
       case 'overview': return <OverviewTab navigate={navigate} />;
-      case 'tenant': return <OverviewTab navigate={navigate} />; // Tenant info is in Overview for now
+      case 'tenant': return <OverviewTab navigate={navigate} />;
       case 'lease': return <LeaseTab />;
-      case 'maintenance': return <MaintenanceTab />;
+      case 'maintenance': return <MaintenanceTab onNewTicket={() => setIsNewTicketOpen(true)} />;
       case 'financials': return <FinancialsTab />;
       case 'documents': return <DocumentsTab />;
       case 'activity': return <ActivityTab />;
@@ -533,7 +540,10 @@ export default function UnitDetailsPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <button className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-card border rounded-lg text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-sm">
+            <button
+              onClick={() => setIsEditUnitOpen(true)}
+              className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-card border rounded-lg text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-sm"
+            >
               <Edit size={16} className="text-muted-foreground" /> Edit Unit
             </button>
             <button className="flex items-center gap-2 px-3 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm">
@@ -569,6 +579,40 @@ export default function UnitDetailsPage() {
       <div className="min-h-[400px]">
         {renderContent()}
       </div>
+
+      {/* Modals */}
+      <UnitModal
+        isOpen={isEditUnitOpen}
+        onClose={() => setIsEditUnitOpen(false)}
+        onSubmit={(_data: UnitFormData) => { /* In a real app, update unit state here */ }}
+        propertyName={MOCK_UNIT.propertyName}
+        initialData={{
+          identifier: MOCK_UNIT.unitNumber,
+          type: MOCK_UNIT.type,
+          beds: MOCK_UNIT.beds,
+          baths: MOCK_UNIT.baths,
+          sqft: String(MOCK_UNIT.sqft),
+          floor: String(MOCK_UNIT.floor),
+          status: MOCK_UNIT.status as any,
+          rentAmount: String(MOCK_UNIT.metrics.rent),
+          rentFrequency: 'monthly',
+          deposit: '',
+          marketRent: String(MOCK_UNIT.marketRent),
+        }}
+      />
+
+      <CreateMaintenanceTicketModal
+        isOpen={isNewTicketOpen}
+        onClose={() => setIsNewTicketOpen(false)}
+        onCreate={(_ticket) => { /* In a real app, prepend to MOCK_MAINTENANCE */ }}
+        userRole="manager"
+        initialData={{
+          propertyId: MOCK_UNIT.propertyId,
+          propertyName: MOCK_UNIT.propertyName,
+          unitId: MOCK_UNIT.id,
+          unitNumber: MOCK_UNIT.unitNumber,
+        }}
+      />
 
     </div>
   );

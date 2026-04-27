@@ -17,7 +17,7 @@ export const MOCK_TICKETS: MaintenanceTicket[] = [
     vendorName: 'Rapid Plumbers Co.',
     estimatedCost: 350,
     accessPermission: true,
-    preferredTime: 'anytime',
+    preferredTime: 'morning',
     createdAt: '2024-01-03 09:30 AM',
     updatedAt: '2024-01-03 11:45 AM'
   },
@@ -35,7 +35,8 @@ export const MOCK_TICKETS: MaintenanceTicket[] = [
     urgency: 'emergency',
     status: 'open',
     estimatedCost: 800,
-    accessPermission: false, 
+    accessPermission: false,
+    preferredTime: 'anytime',
     createdAt: '2024-01-04 06:15 AM',
     updatedAt: '2024-01-04 06:15 AM'
   },
@@ -76,6 +77,7 @@ export const MOCK_TICKETS: MaintenanceTicket[] = [
     estimatedCost: 200,
     actualCost: 185,
     accessPermission: false,
+    preferredTime: 'afternoon',
     createdAt: '2023-12-20',
     updatedAt: '2023-12-22'
   }

@@ -9,7 +9,8 @@ import {
     Clock, 
     User, 
     Briefcase,
-    CheckCircle2
+    CheckCircle2,
+    Lock
 } from 'lucide-react';
 import { MOCK_PROPERTIES } from '@/shared/mockData/properties';
 import { VENDORS } from '@/shared/mockData/maintenance';
@@ -21,9 +22,16 @@ interface CreateTicketModalProps {
     onClose: () => void;
     onCreate: (ticket: Partial<MaintenanceTicket>) => void;
     userRole?: 'tenant' | 'manager' | 'admin';
+    /** When provided, Property + Unit are pre-filled and locked; switches to edit-mode labels */
+    initialData?: {
+        propertyId?: string;
+        propertyName?: string;
+        unitId?: string;
+        unitNumber?: string;
+    };
 }
 
-export function CreateMaintenanceTicketModal({ isOpen, onClose, onCreate, userRole = 'manager' }: CreateTicketModalProps) {
+export function CreateMaintenanceTicketModal({ isOpen, onClose, onCreate, userRole = 'manager', initialData }: CreateTicketModalProps) {
     const { toast } = useToast();
     
     // -- Form State --
@@ -49,11 +57,15 @@ export function CreateMaintenanceTicketModal({ isOpen, onClose, onCreate, userRo
 
     // Derived
     const selectedProperty = MOCK_PROPERTIES.find(p => p.id === selectedPropertyId);
+    const isLockedLocation = !!initialData?.propertyId;
     
-    // Reset form on open
+    // Reset / pre-fill form on open
     useEffect(() => {
         if (isOpen) {
-            // Reset logic could go here
+            if (initialData?.propertyId) {
+                setSelectedPropertyId(initialData.propertyId);
+                setSelectedUnitId(initialData.unitId || '');
+            }
         }
     }, [isOpen]);
 
@@ -111,7 +123,9 @@ export function CreateMaintenanceTicketModal({ isOpen, onClose, onCreate, userRo
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b">
                     <div>
-                         <h2 className="text-lg font-bold">Create Maintenance Ticket</h2>
+                         <h2 className="text-lg font-bold">
+                           {isLockedLocation ? 'New Maintenance Ticket' : 'Create Maintenance Ticket'}
+                         </h2>
                          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
                             <span className="capitalize">{userRole} Mode</span>
                             <span>•</span>
@@ -131,41 +145,90 @@ export function CreateMaintenanceTicketModal({ isOpen, onClose, onCreate, userRo
                         <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                             <Home size={14} /> Location & Scope
                         </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-1.5">
-                                <label className="text-sm font-medium">Property <span className="text-rose-500">*</span></label>
-                                <select 
-                                    className="w-full px-3 py-2 rounded-lg border bg-slate-50 dark:bg-slate-900 focus:ring-2 focus:ring-primary/20 outline-none"
-                                    value={selectedPropertyId}
-                                    onChange={(e) => {
-                                        setSelectedPropertyId(e.target.value);
-                                        setSelectedUnitId(''); // Reset unit when property changes
-                                    }}
-                                >
-                                    <option value="">Select Property...</option>
-                                    {MOCK_PROPERTIES.map(p => (
-                                        <option key={p.id} value={p.id}>{p.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            
-                            <div className="space-y-1.5">
-                                <label className="text-sm font-medium">Unit <span className="text-rose-500">*</span></label>
-                                <select 
-                                    className="w-full px-3 py-2 rounded-lg border bg-slate-50 dark:bg-slate-900 focus:ring-2 focus:ring-primary/20 outline-none disabled:opacity-50"
-                                    value={selectedUnitId}
-                                    onChange={(e) => setSelectedUnitId(e.target.value)}
-                                    disabled={!selectedPropertyId}
-                                >
-                                    <option value="">Select Unit...</option>
-                                    <option value="common">Common Area</option>
-                                    {selectedProperty?.units.map(u => (
-                                        <option key={u.id} value={u.id}>Unit {u.number} ({u.status})</option>
-                                    ))}
-                                </select>
-                            </div>
 
-                            <div className="space-y-1.5 sm:col-span-2">
+                        {/* Locked location display when opened from a unit page */}
+                        {isLockedLocation ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div className="flex items-center gap-3 px-4 py-3 bg-slate-50 dark:bg-slate-900 border rounded-lg">
+                                    <Lock size={14} className="text-muted-foreground shrink-0" />
+                                    <div>
+                                        <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Property</div>
+                                        <div className="text-sm font-medium">{initialData?.propertyName || selectedProperty?.name || '—'}</div>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3 px-4 py-3 bg-slate-50 dark:bg-slate-900 border rounded-lg">
+                                    <Lock size={14} className="text-muted-foreground shrink-0" />
+                                    <div>
+                                        <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Unit</div>
+                                        <div className="text-sm font-medium">
+                                            {initialData?.unitNumber ? `Unit ${initialData.unitNumber}` : 'Common Area'}
+                                        </div>
+                                    </div>
+                                </div>
+                                <p className="md:col-span-2 text-xs text-muted-foreground flex items-center gap-1">
+                                    <Lock size={10} /> Property and unit are pre-set from the unit page and cannot be changed here.
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-sm font-medium">Property <span className="text-rose-500">*</span></label>
+                                    <select 
+                                        className="w-full px-3 py-2 rounded-lg border bg-slate-50 dark:bg-slate-900 focus:ring-2 focus:ring-primary/20 outline-none"
+                                        value={selectedPropertyId}
+                                        onChange={(e) => {
+                                            setSelectedPropertyId(e.target.value);
+                                            setSelectedUnitId('');
+                                        }}
+                                    >
+                                        <option value="">Select Property...</option>
+                                        {MOCK_PROPERTIES.map(p => (
+                                            <option key={p.id} value={p.id}>{p.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                
+                                <div className="space-y-1.5">
+                                    <label className="text-sm font-medium">Unit <span className="text-rose-500">*</span></label>
+                                    <select 
+                                        className="w-full px-3 py-2 rounded-lg border bg-slate-50 dark:bg-slate-900 focus:ring-2 focus:ring-primary/20 outline-none disabled:opacity-50"
+                                        value={selectedUnitId}
+                                        onChange={(e) => setSelectedUnitId(e.target.value)}
+                                        disabled={!selectedPropertyId}
+                                    >
+                                        <option value="">Select Unit...</option>
+                                        <option value="common">Common Area</option>
+                                        {selectedProperty?.units.map(u => (
+                                            <option key={u.id} value={u.id}>Unit {u.number} ({u.status})</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="space-y-1.5 sm:col-span-2">
+                                    <label className="text-sm font-medium">Area / Room</label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {['Kitchen', 'Bathroom', 'Bedroom', 'Living Room', 'Exterior', 'Appliance', 'HVAC'].map(room => (
+                                            <button
+                                                key={room}
+                                                type="button"
+                                                onClick={() => setArea(room)}
+                                                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                                                    area === room 
+                                                    ? 'bg-primary text-primary-foreground border-primary' 
+                                                    : 'bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800'
+                                                }`}
+                                            >
+                                                {room}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Area / Room (shown in locked mode too) */}
+                        {isLockedLocation && (
+                            <div className="space-y-1.5">
                                 <label className="text-sm font-medium">Area / Room</label>
                                 <div className="flex flex-wrap gap-2">
                                     {['Kitchen', 'Bathroom', 'Bedroom', 'Living Room', 'Exterior', 'Appliance', 'HVAC'].map(room => (
@@ -184,7 +247,7 @@ export function CreateMaintenanceTicketModal({ isOpen, onClose, onCreate, userRo
                                     ))}
                                 </div>
                             </div>
-                        </div>
+                        )}
                     </section>
 
                     <div className="w-full h-px bg-border/50" />

@@ -14,36 +14,39 @@ import {
   Banknote,
   Wallet,
   Building,
-  ArrowRight
+  ArrowRight,
+  X
 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Payment, PaymentStatus } from '../../features/payments/types';
+import { getPaymentMethodLabel } from '../../features/payments/utils/paymentMethodLabels';
+import { RecordManualPaymentDrawer } from '../../features/payments/components/RecordManualPaymentDrawer';
+import { FilterDropdown } from '@/shared/components/ui/FilterDropdown';
 
-// --- Types ---
+// --- Constants ---
+const ORIGIN_OPTIONS = [
+  { value: 'processor', label: 'Processor' },
+  { value: 'manual', label: 'Manual' }
+];
 
-type PaymentStatus = 'paid' | 'pending' | 'failed' | 'late';
-type PaymentType = 'rent' | 'fee' | 'adjustment';
-type PaymentMethod = 'ach' | 'card' | 'cash' | 'check';
+const STATUS_OPTIONS = [
+  { value: 'paid', label: 'Paid' },
+  { value: 'pending', label: 'Pending' },
+  { value: 'failed', label: 'Failed' },
+  { value: 'late', label: 'Late' }
+];
 
-interface Payment {
-  id: string;
-  date: string;
-  tenantName: string;
-  propertyName: string;
-  unitNumber: string;
-  type: PaymentType;
-  amount: number;
-  method: PaymentMethod;
-  last4?: string;
-  status: PaymentStatus;
-  processorRef?: string;
-  failureReason?: string;
-  nextRetryDate?: string;
-}
+const METHOD_OPTIONS = [
+  { value: 'ach', label: 'ACH' },
+  { value: 'card', label: 'Card' },
+  { value: 'check', label: 'Check' },
+  { value: 'cash', label: 'Cash' }
+];
 
 // --- Mock Data ---
 
-const MOCK_PAYMENTS: Payment[] = [
+const INITIAL_MOCK_PAYMENTS: Payment[] = [
   {
     id: 'pay_1',
     date: '2024-01-05',
@@ -53,6 +56,7 @@ const MOCK_PAYMENTS: Payment[] = [
     type: 'rent',
     amount: 1450.00,
     method: 'ach',
+    origin: 'processor',
     last4: '4492',
     status: 'paid',
     processorRef: 'ch_1Ok...'
@@ -66,11 +70,27 @@ const MOCK_PAYMENTS: Payment[] = [
     type: 'rent',
     amount: 1950.00,
     method: 'card',
+    origin: 'processor',
     last4: '1092',
     status: 'failed',
     processorRef: 'ch_1Oj...',
     failureReason: 'Insufficient funds',
     nextRetryDate: '2024-01-06'
+  },
+  {
+    id: 'pay_manual_1',
+    date: '2024-01-02',
+    tenantName: 'Alice Green',
+    propertyName: 'Highland Lofts',
+    unitNumber: '204',
+    type: 'rent',
+    amount: 1200.00,
+    method: 'check',
+    origin: 'manual',
+    status: 'paid',
+    manualRef: '1042',
+    notes: 'Dropped off at office.',
+    editable: true
   },
   {
     id: 'pay_3',
@@ -81,6 +101,7 @@ const MOCK_PAYMENTS: Payment[] = [
     type: 'rent',
     amount: 2300.00,
     method: 'ach',
+    origin: 'processor',
     last4: '8821',
     status: 'pending',
     processorRef: 'py_1Oh...'
@@ -94,6 +115,7 @@ const MOCK_PAYMENTS: Payment[] = [
     type: 'fee',
     amount: 50.00,
     method: 'card',
+    origin: 'processor',
     last4: '5543',
     status: 'late',
     processorRef: 'ch_1Og...'
@@ -103,18 +125,22 @@ const MOCK_PAYMENTS: Payment[] = [
 // --- Components ---
 
 const StatusBadge = ({ status }: { status: PaymentStatus }) => {
-  const styles = {
+  const styles: Record<PaymentStatus, string> = {
     paid: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400',
     pending: 'bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400',
     failed: 'bg-rose-100 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400',
     late: 'bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400',
+    tentative: 'bg-purple-100 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400',
+    voided: 'bg-slate-100 text-slate-700 dark:bg-slate-500/10 dark:text-slate-400',
   };
 
-  const icons = {
+  const icons: Record<PaymentStatus, JSX.Element> = {
     paid: <CheckCircle size={12} className="mr-1.5" />,
     pending: <Clock size={12} className="mr-1.5" />,
     failed: <AlertCircle size={12} className="mr-1.5" />,
     late: <AlertCircle size={12} className="mr-1.5" />,
+    tentative: <Clock size={12} className="mr-1.5" />,
+    voided: <AlertCircle size={12} className="mr-1.5" />,
   };
 
   return (
@@ -153,8 +179,18 @@ const PaymentRow = ({ payment }: { payment: Payment }) => {
           <span className="text-xs uppercase font-semibold text-muted-foreground">{payment.type}</span>
           <div className="w-px h-3 bg-border" />
           <div className="flex items-center text-xs text-muted-foreground">
-            {payment.method === 'ach' ? <Banknote size={14} className="mr-1" /> : <CreditCard size={14} className="mr-1" />}
-            {payment.method.toUpperCase()} •••• {payment.last4}
+            {payment.origin === 'manual' ? (
+              <Wallet size={14} className="mr-1.5 text-blue-500" />
+            ) : payment.method === 'ach' ? (
+              <Banknote size={14} className="mr-1.5" />
+            ) : (
+              <CreditCard size={14} className="mr-1.5" />
+            )}
+            {payment.origin === 'manual' ? (
+              <span className="font-medium text-blue-600 dark:text-blue-400 mr-1.5">MANUAL</span>
+            ) : null}
+            {payment.origin === 'manual' ? <span className="mr-1.5">·</span> : null}
+            <span className={cn(payment.origin === 'manual' && "uppercase")}>{getPaymentMethodLabel(payment)}</span>
           </div>
         </div>
 
@@ -193,8 +229,8 @@ const PaymentRow = ({ payment }: { payment: Payment }) => {
                   <span className="text-muted-foreground">ID</span>
                   <span className="font-mono text-xs text-foreground">{payment.id}</span>
 
-                  <span className="text-muted-foreground">Processor</span>
-                  <span className="font-mono text-xs text-foreground">{payment.processorRef}</span>
+                  <span className="text-muted-foreground">{payment.origin === 'manual' ? 'Manual Ref' : 'Processor'}</span>
+                  <span className="font-mono text-xs text-foreground">{payment.origin === 'manual' ? payment.manualRef || '-' : payment.processorRef}</span>
 
                   <span className="text-muted-foreground">Processed</span>
                   <span className="text-foreground">{payment.date}</span>
@@ -211,7 +247,7 @@ const PaymentRow = ({ payment }: { payment: Payment }) => {
                   </div>
                   <div className="flex items-center gap-2">
                     <Wallet size={14} className="text-muted-foreground" />
-                    <span>Sent via {payment.method.toUpperCase()} ending in {payment.last4}</span>
+                    <span>Sent via {getPaymentMethodLabel(payment)}</span>
                   </div>
                 </div>
               </div>
@@ -248,6 +284,11 @@ const PaymentRow = ({ payment }: { payment: Payment }) => {
                     <Clock size={14} /> Send Reminder
                   </button>
                 )}
+                {payment.origin === 'manual' && payment.editable && (
+                  <button className="flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium bg-white dark:bg-card border rounded-md hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-sm w-full">
+                    Edit Manual Payment
+                  </button>
+                )}
                 <button className="flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium bg-white dark:bg-card border rounded-md hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-sm w-full text-muted-foreground hover:text-foreground">
                   View Tenant Profile <ArrowRight size={14} />
                 </button>
@@ -262,8 +303,46 @@ const PaymentRow = ({ payment }: { payment: Payment }) => {
 };
 
 export default function PaymentsPage() {
+  const [payments, setPayments] = useState<Payment[]>(INITIAL_MOCK_PAYMENTS);
+  const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [originFilter, setOriginFilter] = useState<string[]>([]);
+  const [statusFilter, setStatusFilter] = useState<string[]>([]);
+  const [methodFilter, setMethodFilter] = useState<string[]>([]);
+
+  const filteredPayments = payments.filter(p => {
+    // Text search
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      const match = 
+        p.tenantName.toLowerCase().includes(q) || 
+        p.unitNumber.toLowerCase().includes(q) ||
+        (p.manualRef && p.manualRef.toLowerCase().includes(q)) ||
+        (p.processorRef && p.processorRef.toLowerCase().includes(q));
+      if (!match) return false;
+    }
+    
+    // Filters
+    if (originFilter.length && !originFilter.includes(p.origin)) return false;
+    if (statusFilter.length && !statusFilter.includes(p.status)) return false;
+    if (methodFilter.length && !methodFilter.includes(p.method)) return false;
+
+    return true;
+  });
+
+  const handleRecordManualPayment = (paymentData: Partial<Payment>) => {
+    setPayments(prev => [paymentData as Payment, ...prev]);
+    setRecordPaymentOpen(false);
+  };
+
   return (
     <div className="max-w-6xl mx-auto space-y-6">
+      
+      <RecordManualPaymentDrawer 
+        isOpen={recordPaymentOpen}
+        onClose={() => setRecordPaymentOpen(false)}
+        onSubmit={handleRecordManualPayment}
+      />
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -272,7 +351,10 @@ export default function PaymentsPage() {
           <p className="text-muted-foreground">Rent and fee transactions.</p>
         </div>
         <div className="flex items-center gap-2">
-          <button className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium text-sm shadow-sm">
+          <button 
+            onClick={() => setRecordPaymentOpen(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium text-sm shadow-sm"
+          >
             <Plus size={16} />
             Record Payment
           </button>
@@ -284,17 +366,43 @@ export default function PaymentsPage() {
         <Search className="text-muted-foreground ml-2" size={18} />
         <input
           type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search by tenant, unit, or ref ID..."
           className="flex-1 bg-transparent border-none focus:ring-0 text-sm placeholder:text-muted-foreground outline-none"
         />
-        <div className="w-px h-6 bg-border mx-2" />
-        <button className="flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-          <Filter size={14} />
-          Filters
-        </button>
-        <button className="flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-          This Month <ChevronDown size={14} />
-        </button>
+      </div>
+
+      {/* Filter Bar */}
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-xs text-muted-foreground font-medium mr-1">Filter by:</span>
+        <FilterDropdown
+          label="Origin"
+          options={ORIGIN_OPTIONS}
+          selected={originFilter}
+          onChange={setOriginFilter}
+        />
+        <FilterDropdown
+          label="Status"
+          options={STATUS_OPTIONS}
+          selected={statusFilter}
+          onChange={setStatusFilter}
+        />
+        <FilterDropdown
+          label="Method"
+          options={METHOD_OPTIONS}
+          selected={methodFilter}
+          onChange={setMethodFilter}
+        />
+        <span className="ml-auto text-xs text-muted-foreground">{filteredPayments.length} payment{filteredPayments.length !== 1 ? 's' : ''}</span>
+        {(originFilter.length + statusFilter.length + methodFilter.length) > 0 && (
+          <button
+            onClick={() => { setOriginFilter([]); setStatusFilter([]); setMethodFilter([]); }}
+            className="ml-2 text-xs text-muted-foreground hover:text-rose-500 flex items-center gap-1 transition-colors"
+          >
+            <X size={11} /> Clear all
+          </button>
+        )}
       </div>
 
       {/* Payment List */}
@@ -308,9 +416,15 @@ export default function PaymentsPage() {
           <div className="w-6 flex-shrink-0"></div>
         </div>
         <div className="divide-y divide-border/50">
-          {MOCK_PAYMENTS.map(p => (
-            <PaymentRow key={p.id} payment={p} />
-          ))}
+          {filteredPayments.length > 0 ? (
+            filteredPayments.map(p => (
+              <PaymentRow key={p.id} payment={p} />
+            ))
+          ) : (
+            <div className="p-8 text-center text-muted-foreground text-sm">
+              No payments match your search or filter criteria.
+            </div>
+          )}
         </div>
       </div>
 

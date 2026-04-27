@@ -27,6 +27,8 @@ import { Tenant, RentStatus, LeaseStatus } from '@/shared/types/tenant';
 import { MOCK_TENANTS } from '@/shared/mockData/tenants';
 import { TenantFilterDrawer } from '@/shared/components/tenants/TenantFilterDrawer';
 import { TenantFilterState, INITIAL_FILTERS } from '@/shared/types/tenantFilters';
+import { RecordManualPaymentDrawer } from '@/features/payments/components/RecordManualPaymentDrawer';
+import { Payment } from '@/features/payments/types';
 
 // --- Components ---
 
@@ -54,7 +56,7 @@ const RentStatusBadge = ({ status }: { status: RentStatus }) => {
   );
 };
 
-const TenantRow = ({ tenant }: { tenant: Tenant }) => {
+const TenantRow = ({ tenant, onRecordPayment }: { tenant: Tenant, onRecordPayment: (id: string) => void }) => {
   const navigate = useNavigate();
   const [expanded, setExpanded] = useState(false);
 
@@ -232,7 +234,10 @@ const TenantRow = ({ tenant }: { tenant: Tenant }) => {
                             <button className="flex items-center gap-2 w-full px-3 py-2 text-sm font-medium text-foreground bg-white dark:bg-card border rounded-md hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-sm">
                                 <Mail size={14} className="text-muted-foreground" /> Message Tenant
                             </button>
-                            <button className="flex items-center gap-2 w-full px-3 py-2 text-sm font-medium text-foreground bg-white dark:bg-card border rounded-md hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-sm">
+                             <button 
+                                onClick={() => onRecordPayment(tenant.id)}
+                                className="flex items-center gap-2 w-full px-3 py-2 text-sm font-medium text-foreground bg-white dark:bg-card border rounded-md hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-sm"
+                            >
                                 <DollarSign size={14} className="text-muted-foreground" /> Record Payment
                             </button>
                              <button 
@@ -255,6 +260,19 @@ const TenantRow = ({ tenant }: { tenant: Tenant }) => {
 export default function TenantsPage() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
+  const [recordPaymentTenantId, setRecordPaymentTenantId] = useState<string | null>(null);
+
+  const handleRecordPayment = (tenantId: string) => {
+    setRecordPaymentTenantId(tenantId);
+    setRecordPaymentOpen(true);
+  };
+
+  const handleRecordManualPaymentSubmit = (paymentData: Partial<Payment>) => {
+    setRecordPaymentOpen(false);
+    setRecordPaymentTenantId(null);
+  };
 
   const [activeFilters, setActiveFilters] = useState<TenantFilterState>(INITIAL_FILTERS);
   const [sortConfig, setSortConfig] = useState<{ key: keyof Tenant; direction: 'asc' | 'desc' } | null>(null);
@@ -444,7 +462,7 @@ export default function TenantsPage() {
 
         {filteredAndSortedTenants.length > 0 ? (
             filteredAndSortedTenants.map(t => (
-                <TenantRow key={t.id} tenant={t} />
+                <TenantRow key={t.id} tenant={t} onRecordPayment={handleRecordPayment} />
             ))
         ) : (
             <div className="text-center py-12 text-muted-foreground bg-card/50 rounded-xl border border-dashed">
@@ -465,6 +483,16 @@ export default function TenantsPage() {
         currentFilters={activeFilters}
         onApply={setActiveFilters}
         onReset={() => setActiveFilters(INITIAL_FILTERS)}
+      />
+
+      <RecordManualPaymentDrawer
+        isOpen={recordPaymentOpen}
+        onClose={() => {
+          setRecordPaymentOpen(false);
+          setRecordPaymentTenantId(null);
+        }}
+        onSubmit={handleRecordManualPaymentSubmit}
+        preselectedTenantId={recordPaymentTenantId}
       />
 
     </div>

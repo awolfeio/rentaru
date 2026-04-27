@@ -13,7 +13,7 @@ export const MOCK_TENANT_REQUESTS: MaintenanceRequest[] = [
     priority: 'emergency',
     status: 'in_progress',
     allowEntryWithoutTenant: true,
-    preferredAccessTimes: 'Anytime',
+    preferredAccessTimes: 'Mon–Fri, 8am–5pm',
     petsPresent: false,
     attachments: [
       {
@@ -54,7 +54,7 @@ export const MOCK_TENANT_REQUESTS: MaintenanceRequest[] = [
     priority: 'normal',
     status: 'submitted',
     allowEntryWithoutTenant: false,
-    preferredAccessTimes: 'Weekdays after 5pm/Weekends',
+    preferredAccessTimes: 'Weekdays after 5pm or weekends only',
     petsPresent: true,
     attachments: [],
     messages: [],
@@ -72,7 +72,7 @@ export const MOCK_TENANT_REQUESTS: MaintenanceRequest[] = [
     priority: 'high',
     status: 'scheduled',
     allowEntryWithoutTenant: true,
-    preferredAccessTimes: 'Anytime',
+    preferredAccessTimes: 'Anytime — 24/7 access OK',
     petsPresent: false,
     attachments: [],
     messages: [
@@ -98,7 +98,7 @@ export const MOCK_TENANT_REQUESTS: MaintenanceRequest[] = [
     priority: 'normal',
     status: 'completed',
     allowEntryWithoutTenant: true,
-    preferredAccessTimes: 'Anytime',
+    preferredAccessTimes: 'Business hours preferred (9am–6pm)',
     petsPresent: false,
     attachments: [],
     messages: [],
@@ -117,7 +117,7 @@ export const MOCK_TENANT_REQUESTS: MaintenanceRequest[] = [
     priority: 'high',
     status: 'completed',
     allowEntryWithoutTenant: false,
-    preferredAccessTimes: 'Weekends',
+    preferredAccessTimes: 'Saturdays 10am–2pm only',
     petsPresent: false,
     attachments: [],
     messages: [
