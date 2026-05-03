@@ -12,7 +12,7 @@ export const MOCK_TICKETS: MaintenanceTicket[] = [
     categoryId: 'plumbing',
     reportedBy: 'Jane Smith',
     reporterType: 'tenant',
-    urgency: 'urgent',
+    urgency: 'high',
     status: 'in_progress',
     vendorName: 'Rapid Plumbers Co.',
     estimatedCost: 350,

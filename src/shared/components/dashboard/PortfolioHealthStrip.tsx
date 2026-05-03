@@ -1,13 +1,27 @@
-import { ArrowDown, AlertCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { cn } from '@/shared/lib/utils';
 
-
-
-const MetricCard = ({ label, value, subtext, alert = false }: { label: string, value: string, subtext?: React.ReactNode, alert?: boolean }) => (
-    <div className={cn(
-        "bg-card p-4 rounded-xl border shadow-sm flex flex-col justify-between transition-all hover:shadow-md",
-        alert ? "border-amber-200 bg-amber-50/50 dark:bg-amber-950/10 dark:border-amber-900/50" : "border-border"
-    )}>
+const MetricCard = ({ 
+    label, 
+    value, 
+    subtext, 
+    alert = false,
+    onClick 
+}: { 
+    label: string, 
+    value: string, 
+    subtext?: React.ReactNode, 
+    alert?: boolean,
+    onClick?: () => void
+}) => (
+    <div 
+        onClick={onClick}
+        className={cn(
+            "bg-card p-4 rounded-xl border shadow-sm flex flex-col justify-between transition-all",
+            onClick ? "cursor-pointer hover:shadow-md hover:border-primary/20" : "hover:shadow-md",
+            alert ? "border-amber-200 bg-amber-50/50 dark:bg-amber-950/10 dark:border-amber-900/50" : "border-border"
+        )}
+    >
         <span className="text-sm font-medium text-muted-foreground">{label}</span>
         <div className="mt-2">
             <div className="text-2xl font-bold tracking-tight text-foreground">{value}</div>
@@ -17,6 +31,8 @@ const MetricCard = ({ label, value, subtext, alert = false }: { label: string, v
 )
 
 export function PortfolioHealthStrip() {
+    const navigate = useNavigate();
+
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <MetricCard 
@@ -39,6 +55,7 @@ export function PortfolioHealthStrip() {
                 label="Active Maintenance" 
                 value="6 Open" 
                 subtext="2 Urgent requests"
+                onClick={() => navigate('/app/maintenance?status=open')}
             />
         </div>
     )

@@ -1,5 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Wrench,
   Search,
@@ -33,7 +34,8 @@ import { UrgencyBadge, StatusBadge, TicketRow } from '@/shared/components/mainte
 
 const PRIORITY_OPTIONS: { value: UrgencyLevel; label: string }[] = [
   { value: 'emergency', label: 'Emergency' },
-  { value: 'urgent',    label: 'Urgent' },
+  { value: 'high',      label: 'High' },
+  { value: 'medium',    label: 'Medium' },
   { value: 'routine',   label: 'Routine' },
 ];
 
@@ -54,10 +56,14 @@ const CATEGORY_OPTIONS: { value: TicketCategory; label: string }[] = [
 ];
 
 export default function MaintenancePage() {
+  const [searchParams] = useSearchParams();
   const [tickets, setTickets] = useState<MaintenanceTicket[]>(MOCK_TICKETS);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [priorityFilter, setPriorityFilter] = useState<string[]>([]);
-  const [statusFilter, setStatusFilter]     = useState<string[]>([]);
+  const [statusFilter, setStatusFilter]     = useState<string[]>(() => {
+    const status = searchParams.get('status');
+    return status ? [status] : [];
+  });
   const [categoryFilter, setCategoryFilter] = useState<string[]>([]);
 
   const filteredTickets = tickets.filter(t => {
@@ -88,7 +94,7 @@ export default function MaintenancePage() {
         <div className="flex items-center gap-2">
           <button 
             onClick={() => setIsCreateModalOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-rose-600 text-white hover:bg-rose-700 transition-colors font-medium text-sm shadow-sm"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium text-sm shadow-sm"
           >
             <Plus size={16} />
             New Ticket

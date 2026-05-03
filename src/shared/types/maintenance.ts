@@ -1,5 +1,4 @@
-
-export type UrgencyLevel = 'routine' | 'urgent' | 'emergency';
+export type UrgencyLevel = 'emergency' | 'high' | 'medium' | 'routine';
 export type TicketStatus = 'open' | 'in_progress' | 'waiting' | 'resolved' | 'closed';
 export type TicketCategory = 'plumbing' | 'hvac' | 'electrical' | 'appliance' | 'general';
 
@@ -48,7 +47,7 @@ export type MaintenanceCategory =
   | "safety"
   | "other";
 
-export type MaintenancePriority = "emergency" | "high" | "normal";
+export type MaintenancePriority = 'emergency' | 'high' | 'medium' | 'routine';
 
 export type MaintenanceStatus = 
   | "submitted" 

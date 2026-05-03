@@ -906,7 +906,7 @@ export default function AccountingPage() {
               <span className="text-sm font-medium text-muted-foreground">{card.label}</span>
               <div className={`p-1.5 rounded-lg ${card.iconBg}`}>{card.icon}</div>
             </div>
-            <div className={`text-2xl font-bold ${card.color}`}>
+            <div className={`text-3xl font-bold ${card.color}`}>
               {card.value < 0 ? '-' : ''}${Math.abs(card.value).toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </div>
             <div className="text-xs text-muted-foreground">Based on {ledger.filter(e => e.status === 'posted').length} posted transactions</div>

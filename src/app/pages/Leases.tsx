@@ -13,10 +13,12 @@ import {
   MoreVertical,
   Download,
   Send,
-  ArrowUpDown
+  ArrowUpDown,
+  X
 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { FilterDropdown } from '@/shared/components/ui/FilterDropdown';
 
 // --- Types ---
 
@@ -45,8 +47,8 @@ const MOCK_LEASES: Lease[] = [
     tenantName: 'Jane Smith',
     propertyName: 'Oak Street Apartments',
     unitNumber: '3B',
-    startDate: '2023-01-01',
-    endDate: '2024-03-01', // Ending soon
+    startDate: '2025-06-01',
+    endDate: '2026-06-01', // Ending soon (approx 30 days left)
     rentAmount: 1450,
     securityDeposit: 1450,
     status: 'ending',
@@ -58,8 +60,8 @@ const MOCK_LEASES: Lease[] = [
     tenantName: 'Michael Chen',
     propertyName: 'Highland Lofts',
     unitNumber: '102',
-    startDate: '2023-08-01',
-    endDate: '2024-08-01',
+    startDate: '2026-01-01',
+    endDate: '2027-01-01', // Active
     rentAmount: 2300,
     securityDeposit: 2300,
     status: 'active',
@@ -71,8 +73,8 @@ const MOCK_LEASES: Lease[] = [
     tenantName: 'David Wilson',
     propertyName: 'Sunset Duplex',
     unitNumber: 'A',
-    startDate: '2022-11-15',
-    endDate: '2023-11-15',
+    startDate: '2025-04-01',
+    endDate: '2026-04-01', // Expired
     rentAmount: 1850,
     securityDeposit: 1850,
     status: 'expired',
@@ -84,14 +86,21 @@ const MOCK_LEASES: Lease[] = [
     tenantName: 'Sarah Johnson',
     propertyName: 'Highland Lofts',
     unitNumber: '205',
-    startDate: '2023-06-30',
-    endDate: '2024-06-30',
+    startDate: '2025-10-01',
+    endDate: '2026-10-01', // Active
     rentAmount: 2100,
     securityDeposit: 2100,
     status: 'active',
     renewalStatus: 'not_offered',
     documentUrl: '#'
   }
+];
+
+const STATUS_OPTIONS: { value: LeaseStatus; label: string }[] = [
+  { value: 'active',  label: 'Active' },
+  { value: 'ending',  label: 'Ending Soon' },
+  { value: 'expired', label: 'Expired' },
+  { value: 'draft',   label: 'Draft' },
 ];
 
 // --- Components ---
@@ -124,9 +133,9 @@ const LeaseTimeline = ({ start, end }: { start: string, end: string }) => {
   const progress = Math.min(Math.max((elapsed / totalDuration) * 100, 0), 100);
 
   return (
-    <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden mt-1">
+    <div className="w-full h-1.5 bg-slate-50 dark:bg-slate-800/40 rounded-full overflow-hidden mt-1 border border-slate-100 dark:border-slate-800/50">
       <div
-        className={cn("h-full rounded-full", progress > 90 ? "bg-amber-500" : "bg-primary")}
+        className={cn("h-full rounded-full transition-all duration-500", progress === 100 ? "bg-emerald-500" : "bg-primary")}
         style={{ width: `${progress}%` }}
       />
     </div>
@@ -308,16 +317,30 @@ const LeaseRow = ({ lease }: { lease: Lease }) => {
 };
 
 export default function LeasesPage() {
-  const [sortBy, setSortBy] = useState<'tenant' | 'property'>('tenant');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string[]>([]);
+  const [sortBy, setSortBy] = useState<'tenant' | 'property' | 'newest' | 'oldest'>('newest');
   const [showSortMenu, setShowSortMenu] = useState(false);
 
-  // Sort leases based on selected option
-  const sortedLeases = [...MOCK_LEASES].sort((a, b) => {
-    if (sortBy === 'tenant') {
-      return a.tenantName.localeCompare(b.tenantName);
-    } else {
-      return a.propertyName.localeCompare(b.propertyName);
-    }
+  // Filtering
+  const filteredLeases = MOCK_LEASES.filter(lease => {
+    const matchesSearch = 
+      lease.tenantName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      lease.propertyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      lease.unitNumber.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesStatus = statusFilter.length === 0 || statusFilter.includes(lease.status);
+    
+    return matchesSearch && matchesStatus;
+  });
+
+  // Sorting
+  const sortedLeases = [...filteredLeases].sort((a, b) => {
+    if (sortBy === 'tenant') return a.tenantName.localeCompare(b.tenantName);
+    if (sortBy === 'property') return a.propertyName.localeCompare(b.propertyName);
+    if (sortBy === 'newest') return new Date(b.startDate).getTime() - new Date(a.startDate).getTime();
+    if (sortBy === 'oldest') return new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
+    return 0;
   });
 
   return (
@@ -336,72 +359,121 @@ export default function LeasesPage() {
           </button>
         </div>
       </div>
+      {/* Controls */}
+      <div className="space-y-3">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-2 bg-card p-2 rounded-lg border shadow-sm flex-1 max-w-2xl">
+            <Search className="text-muted-foreground ml-2" size={18} />
+            <input
+              type="text"
+              placeholder="Search by tenant, unit, or property..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="flex-1 bg-transparent border-none focus:ring-0 text-sm placeholder:text-muted-foreground outline-none"
+            />
+          </div>
 
-      {/* Controls */}
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 bg-card p-2 rounded-lg border shadow-sm flex-1 max-w-2xl">
-          <Search className="text-muted-foreground ml-2" size={18} />
-          <input
-            type="text"
-            placeholder="Search by tenant, unit, or property..."
-            className="flex-1 bg-transparent border-none focus:ring-0 text-sm placeholder:text-muted-foreground outline-none"
-          />
-          <div className="w-px h-6 bg-border mx-2" />
-          <button className="flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-            <Filter size={14} />
-            Filters
-          </button>
+          {/* Sort By Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setShowSortMenu(!showSortMenu)}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-card border shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors w-full md:w-auto justify-between"
+            >
+              <div className="flex items-center gap-2">
+                <ArrowUpDown size={14} />
+                Sort By
+              </div>
+              <ChevronDown size={14} className={cn("transition-transform", showSortMenu && "rotate-180")} />
+            </button>
+
+            <AnimatePresence>
+              {showSortMenu && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute right-0 mt-2 w-56 bg-card border rounded-lg shadow-lg overflow-hidden z-10"
+                >
+                  <button
+                    onClick={() => {
+                      setSortBy('tenant');
+                      setShowSortMenu(false);
+                    }}
+                    className={cn(
+                      "w-full text-left px-4 py-2 text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors",
+                      sortBy === 'tenant' && "bg-primary/5 text-primary font-medium"
+                    )}
+                  >
+                    Tenant Name (A-Z)
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSortBy('property');
+                      setShowSortMenu(false);
+                    }}
+                    className={cn(
+                      "w-full text-left px-4 py-2 text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border-t border-border/50",
+                      sortBy === 'property' && "bg-primary/5 text-primary font-medium"
+                    )}
+                  >
+                    Property Name (A-Z)
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSortBy('newest');
+                      setShowSortMenu(false);
+                    }}
+                    className={cn(
+                      "w-full text-left px-4 py-2 text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border-t border-border/50",
+                      sortBy === 'newest' && "bg-primary/5 text-primary font-medium"
+                    )}
+                  >
+                    Newest to Oldest
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSortBy('oldest');
+                      setShowSortMenu(false);
+                    }}
+                    className={cn(
+                      "w-full text-left px-4 py-2 text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border-t border-border/50",
+                      sortBy === 'oldest' && "bg-primary/5 text-primary font-medium"
+                    )}
+                  >
+                    Oldest to Newest
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
 
-        {/* Sort By Dropdown */}
-        <div className="relative">
-          <button
-            onClick={() => setShowSortMenu(!showSortMenu)}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-card border shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <ArrowUpDown size={14} />
-            Sort By
-            <ChevronDown size={14} className={cn("transition-transform", showSortMenu && "rotate-180")} />
-          </button>
+        {/* Filter Bar */}
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs text-muted-foreground font-medium mr-1">Filter by:</span>
+          <FilterDropdown 
+            label="Status"
+            options={STATUS_OPTIONS}
+            selected={statusFilter}
+            onChange={setStatusFilter}
+          />
+          
+          <span className="ml-auto text-xs text-muted-foreground">
+            {sortedLeases.length} lease{sortedLeases.length !== 1 ? 's' : ''} found
+          </span>
 
-          <AnimatePresence>
-            {showSortMenu && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.15 }}
-                className="absolute right-0 mt-2 w-56 bg-card border rounded-lg shadow-lg overflow-hidden z-10"
-              >
-                <button
-                  onClick={() => {
-                    setSortBy('tenant');
-                    setShowSortMenu(false);
-                  }}
-                  className={cn(
-                    "w-full text-left px-4 py-2.5 text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors",
-                    sortBy === 'tenant' && "bg-primary/5 text-primary font-medium"
-                  )}
-                >
-                  Tenant Name (Alphabetical)
-                </button>
-                <button
-                  onClick={() => {
-                    setSortBy('property');
-                    setShowSortMenu(false);
-                  }}
-                  className={cn(
-                    "w-full text-left px-4 py-2.5 text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border-t border-border/50",
-                    sortBy === 'property' && "bg-primary/5 text-primary font-medium"
-                  )}
-                >
-                  Property Name (Alphabetical)
-                </button>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {statusFilter.length > 0 && (
+            <button
+              onClick={() => setStatusFilter([])}
+              className="ml-2 text-xs text-muted-foreground hover:text-rose-500 flex items-center gap-1 transition-colors"
+            >
+              <X size={11} /> Clear all
+            </button>
+          )}
         </div>
       </div>
+
 
       {/* Leases List */}
       <div className="space-y-3">

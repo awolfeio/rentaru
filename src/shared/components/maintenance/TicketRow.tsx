@@ -7,13 +7,15 @@ import { MaintenanceTicket, TicketStatus, UrgencyLevel, TicketCategory } from '@
 export const UrgencyBadge = ({ level }: { level: UrgencyLevel }) => {
   const styles = {
     routine: 'bg-slate-100/50 text-slate-600 dark:bg-slate-800/50 dark:text-slate-400 border-slate-200/50 dark:border-slate-700/50',
-    urgent: 'bg-amber-100/50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border-amber-200/50 dark:border-amber-500/20',
+    medium: 'bg-blue-100/50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 border-blue-200/50 dark:border-blue-500/20',
+    high: 'bg-amber-100/50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border-amber-200/50 dark:border-amber-500/20',
     emergency: 'bg-rose-100/50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400 border-rose-200/50 dark:border-rose-500/20'
   };
 
   const icons = {
     routine: null,
-    urgent: <AlertTriangle size={10} className="mr-1" />,
+    medium: <Clock size={10} className="mr-1" />,
+    high: <AlertTriangle size={10} className="mr-1" />,
     emergency: <AlertOctagon size={10} className="mr-1" />
   };
 
@@ -265,4 +267,4 @@ export const TicketRow = ({ ticket }: { ticket: MaintenanceTicket }) => {
       </AnimatePresence>
     </div>
   );
-};
+};

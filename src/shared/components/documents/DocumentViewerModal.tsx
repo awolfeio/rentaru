@@ -28,7 +28,7 @@ export function DocumentViewerModal({ open, onOpenChange, document, onDownload, 
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
                         transition={{ duration: 0.2 }}
-                        className="bg-card w-full h-full max-w-6xl max-h-[90vh] rounded-xl shadow-xl flex flex-col border overflow-hidden"
+                        className="bg-card w-full h-full max-w-7xl max-h-[90vh] rounded-xl shadow-xl flex flex-col border overflow-hidden"
                     >
                         {/* Header */}
                         <div className="flex items-center justify-between px-6 py-4 border-b bg-slate-50 dark:bg-slate-900/50">

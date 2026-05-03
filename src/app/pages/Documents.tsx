@@ -20,6 +20,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 import { DocumentType, DocumentStatus, RelatedEntityType, DocRecord } from '@/shared/types/document';
 import { DocumentViewerModal } from '@/shared/components/documents/DocumentViewerModal';
+import sampleLeasePdf from '@/shared/mockData/sample_lease_agreement.pdf';
 
 // --- Mock Data ---
 
@@ -35,7 +36,7 @@ const MOCK_DOCS: DocRecord[] = [
     uploadedAt: '2023-12-15',
     signedAt: '2023-12-20',
     uploadedBy: 'System',
-    fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+    fileUrl: sampleLeasePdf,
     mimeType: 'application/pdf'
   },
   {
@@ -61,7 +62,7 @@ const MOCK_DOCS: DocRecord[] = [
     size: '145 KB',
     uploadedAt: '2024-01-04',
     uploadedBy: 'Property Manager',
-    fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+    fileUrl: sampleLeasePdf,
     mimeType: 'application/pdf'
   },
   {
@@ -74,7 +75,7 @@ const MOCK_DOCS: DocRecord[] = [
     size: '88 KB',
     uploadedAt: '2023-12-28',
     uploadedBy: 'Rapid Plumbers Co.',
-    fileUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+    fileUrl: sampleLeasePdf,
     mimeType: 'application/pdf'
   }
 ];
@@ -195,14 +196,14 @@ const DocumentRow = ({ doc, onView }: { doc: DocRecord, onView: (doc: DocRecord)
                     {/* Actions Column */}
                     <div className="space-y-4">
                         <div className="font-semibold text-xs uppercase tracking-wider text-muted-foreground mb-1">Actions</div>
-                        <div className="flex flex-wrap gap-2">
-                             <button onClick={() => onView(doc)} className="flex items-center gap-2 px-3 py-2 text-sm font-medium border rounded-md hover:bg-white dark:hover:bg-slate-800 transition-colors bg-card shadow-sm">
+                        <div className="flex flex-col gap-2 sm:w-48">
+                             <button onClick={() => onView(doc)} className="flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium border rounded-md hover:bg-white dark:hover:bg-slate-800 transition-colors bg-card shadow-sm w-full">
                                  <Eye size={14} /> View
                              </button>
-                             <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium border rounded-md hover:bg-white dark:hover:bg-slate-800 transition-colors bg-card shadow-sm">
+                             <button className="flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium border rounded-md hover:bg-white dark:hover:bg-slate-800 transition-colors bg-card shadow-sm w-full">
                                  <Download size={14} /> Download
                              </button>
-                             <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium border border-rose-200 text-rose-600 rounded-md hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors bg-card shadow-sm ml-auto">
+                             <button className="flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium border border-rose-200 text-rose-600 rounded-md hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors bg-card shadow-sm w-full">
                                  <Trash2 size={14} /> Archive
                              </button>
                         </div>

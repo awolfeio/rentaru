@@ -190,7 +190,7 @@ export default function TenantHome() {
                                      <p className="text-xs text-slate-400 mb-1">Current Lease Ends</p>
                                      <p className="text-lg font-semibold">Feb 28, 2024</p>
                                  </div>
-                                 <button onClick={() => navigate('/tenant/documents/lease')} className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-xs font-medium transition-colors flex items-center gap-1">
+                                 <button onClick={() => navigate('/tenant/documents')} className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-xs font-medium transition-colors flex items-center gap-1">
                                      Details <ArrowRight size={12} />
                                  </button>
                              </div>

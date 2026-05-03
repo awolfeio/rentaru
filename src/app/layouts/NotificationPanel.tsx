@@ -294,7 +294,7 @@ function NotificationItem({ notification, onClear }: { notification: Notificatio
                                     className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-primary/5 hover:bg-primary/10 text-xs font-medium text-primary transition-colors group/link"
                                 >
                                     {action.label}
-                                    <ExternalLink className="w-3 h-3 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 transition-transform" />
+                                    <ExternalLink className="w-3 h-3" />
                                 </a>
                             ))}
                         </div>

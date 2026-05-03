@@ -321,7 +321,7 @@ export function CreateMaintenanceTicketModal({ isOpen, onClose, onCreate, userRo
                             <div className="space-y-3">
                                 <label className="text-sm font-medium">Priority <span className="text-rose-500">*</span></label>
                                 <div className="space-y-2">
-                                    {(['routine', 'urgent', 'emergency'] as const).map((level) => (
+                                    {(['routine', 'medium', 'high', 'emergency'] as const).map((level) => (
                                         <label 
                                             key={level}
                                             className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
@@ -343,7 +343,8 @@ export function CreateMaintenanceTicketModal({ isOpen, onClose, onCreate, userRo
                                                 </div>
                                                 <div className="text-xs text-muted-foreground mt-0.5">
                                                     {level === 'routine' ? 'Standard repair timeframe.' :
-                                                     level === 'urgent' ? 'Needs attention within 48h.' :
+                                                     level === 'medium' ? 'Needs attention within 72h.' :
+                                                     level === 'high' ? 'Needs attention within 24-48h.' :
                                                      'Immediate threat to property/safety.'}
                                                 </div>
                                             </div>
