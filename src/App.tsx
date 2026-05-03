@@ -2,6 +2,11 @@ import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-route
 import { AnimatePresence } from 'framer-motion';
 import { ToastProvider } from '@/shared/components/ui/Toast';
 
+function scrollToTop() {
+  window.scrollTo(0, 0);
+  document.querySelector('main')?.scrollTo(0, 0);
+}
+
 // Layouts
 import { AppLayout } from '@/app/layouts/AppLayout';
 import { TenantLayout } from '@/tenant/layouts/TenantLayout';
@@ -18,7 +23,7 @@ function TenantApp() {
 
   return (
     <TenantLayout>
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="wait" onExitComplete={scrollToTop}>
         <Routes location={location} key={location.pathname}>
           {tenantRoutes}
         </Routes>
@@ -37,7 +42,7 @@ function OperatorApp() {
 
   return (
     <AppLayout>
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="wait" onExitComplete={scrollToTop}>
         <Routes location={location} key={getPageKey(location.pathname)}>
           {appRoutes}
         </Routes>
