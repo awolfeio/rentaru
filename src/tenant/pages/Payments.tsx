@@ -2,7 +2,7 @@
 import { 
     DollarSign, CreditCard, ChevronDown, CheckCircle2, 
     AlertCircle, Clock, Calendar, Download, FileText,
-    History, Plus, ArrowRight
+    History, Plus, ArrowRight, Landmark
 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -50,7 +50,7 @@ const PaymentMethodCard = ({ method, isSelected, onClick }: { method: any, isSel
     >
         <div className="flex items-center gap-3">
              <div className={cn("p-2 rounded-lg", isSelected ? "bg-primary/20 text-primary" : "bg-white/5 text-slate-400")}>
-                <CreditCard size={20} />
+                {method.type === 'ach' ? <Landmark size={20} /> : <CreditCard size={20} />}
              </div>
              <div>
                  <p className={cn("font-medium text-sm", isSelected ? "text-white" : "text-slate-300")}>{method.name}</p>

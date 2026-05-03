@@ -20,6 +20,34 @@ export type LeaseStatus =
   | 'terminated_early'
   | 'eviction';
 
+export type VehiclePowertrain = 'electric' | 'non_electric';
+export type ParkingAssignment =
+  | 'unassigned_open_lot_parking'
+  | 'covered_carport'
+  | 'parking_garage'
+  | 'tandem_parking'
+  | 'oversized_vehicle'
+  | 'motorcycle';
+
+export interface TenantVehicle {
+  id: string;
+  title: string;
+  year: number;
+  color: string;
+  licensePlate: string;
+  powertrain: VehiclePowertrain;
+  parkingAssignment: ParkingAssignment;
+}
+
+export interface TenantInsurancePolicy {
+  id: string;
+  policyNumber: string;
+  provider: string;
+  coverageStartDate: string;
+  coverageEndDate: string;
+  liabilityNumbers: string[];
+}
+
 export interface Tenant {
   id: string;
   // Personal Info
@@ -58,6 +86,8 @@ export interface Tenant {
   portalStatus: 'invited' | 'accepted' | 'never_logged_in' | 'disabled';
   documentStatus: 'complete' | 'missing_docs' | 'lease_signed';
   tags: string[]; // e.g., 'vip', 'high_risk'
+  vehicles?: TenantVehicle[];
+  insurancePolicies?: TenantInsurancePolicy[];
   
   createdAt: string;
 }

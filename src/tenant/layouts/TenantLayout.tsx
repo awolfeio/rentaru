@@ -13,7 +13,7 @@ export function TenantLayout({ children }: { children: ReactNode }) {
              <main className="flex-1 transition-all duration-300 ease-in-out lg:ml-64">
                 <TenantUtilityBar />
                 
-                <div className="p-6 md:p-8 max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-2 duration-500">
+                <div className="p-6 md:p-8 max-w-7xl mx-auto">
                     {children}
                 </div>
              </main>

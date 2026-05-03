@@ -55,7 +55,7 @@ const INITIAL_DATA: WizardFormData = {
   applianceProvidedByProperty: undefined,
   title: '',
   description: '',
-  priority: 'normal',
+  priority: 'routine',
   attachments: [],
   allowEntryWithoutTenant: false,
   preferredAccessTimes: '',
@@ -363,10 +363,10 @@ export function CreateRequestWizard({ isOpen, onClose, onSubmit }: CreateRequest
                      <label className="text-sm font-medium">Urgency</label>
                      <div className="grid grid-cols-2 gap-4">
                        <button
-                         onClick={() => updateData({ priority: 'normal' })}
+                         onClick={() => updateData({ priority: 'routine' })}
                          className={cn(
                            "flex items-center justify-center gap-2 p-3 rounded-lg border transition-all",
-                           data.priority === 'normal' ? "ring-2 ring-primary border-transparent bg-primary/5" : "hover:bg-muted/50"
+                           data.priority === 'routine' ? "ring-2 ring-primary border-transparent bg-primary/5" : "hover:bg-muted/50"
                          )}
                        >
                          Normal
@@ -544,7 +544,7 @@ export function CreateRequestWizard({ isOpen, onClose, onSubmit }: CreateRequest
                              <p className="text-sm text-muted-foreground mt-1 line-clamp-3">{data.description}</p>
                              <div className={cn("inline-flex items-center gap-1 mt-2 text-xs font-bold px-2 py-0.5 rounded uppercase tracking-wide", 
                                 data.priority === 'emergency' ? "bg-rose-100 text-rose-700" : "bg-slate-200 text-slate-700")}>
-                                {data.priority}
+                                {data.priority === 'routine' ? 'normal' : data.priority}
                              </div>
                          </div>
                          <button onClick={() => setStep(4)} className="text-xs text-primary font-medium hover:underline">Edit</button>

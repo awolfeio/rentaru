@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   Wrench, 
   Plus, 
@@ -46,7 +47,8 @@ const STATUS_STYLES: Record<MaintenanceStatus, string> = {
 const PRIORITY_STYLES: Record<MaintenancePriority, string> = {
   emergency: "bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-900/20 dark:text-rose-400 dark:border-rose-800",
   high: "bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800",
-  normal: "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700",
+  medium: "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800",
+  routine: "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700",
 };
 
 const CATEGORY_ICONS: Record<MaintenanceCategory, any> = {
@@ -110,7 +112,7 @@ const RequestCard = ({ request, onClick }: { request: MaintenanceRequest; onClic
 
       <div className="flex items-center justify-between text-xs text-muted-foreground pl-2 border-t pt-3">
         <div className="flex items-center gap-4">
-           {request.priority !== 'normal' && <PriorityBadge priority={request.priority} />}
+           {request.priority !== 'routine' && <PriorityBadge priority={request.priority} />}
            <span className="flex items-center gap-1">
              <Clock size={12} />
              Updated {formatDistanceToNow(new Date(request.updatedAt))} ago
@@ -133,7 +135,7 @@ const RequestCard = ({ request, onClick }: { request: MaintenanceRequest; onClic
 const DetailDrawer = ({ request, onClose }: { request: MaintenanceRequest | null; onClose: () => void }) => {
   const [lightboxImg, setLightboxImg] = useState<string | null>(null);
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {request && (
         <>
@@ -314,7 +316,8 @@ const DetailDrawer = ({ request, onClose }: { request: MaintenanceRequest | null
           />
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    window.document.body
   );
 };
 

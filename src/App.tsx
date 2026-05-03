@@ -14,11 +14,15 @@ import { tenantRoutes } from '@/tenant/routes';
 import LoginPage from '@/app/pages/LoginPage';
 
 function TenantApp() {
+  const location = useLocation();
+
   return (
     <TenantLayout>
-      <Routes>
-        {tenantRoutes}
-      </Routes>
+      <AnimatePresence mode="wait">
+        <Routes location={location} key={location.pathname}>
+          {tenantRoutes}
+        </Routes>
+      </AnimatePresence>
     </TenantLayout>
   );
 }

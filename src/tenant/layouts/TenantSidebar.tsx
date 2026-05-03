@@ -1,96 +1,58 @@
-
 import {
-    Home,
-    CreditCard,
-    Wrench,
-    FileText,
     Building,
-    MessageSquare,
-    Zap,
-    Users,
-    Flag,
-    LogOut,
+    Car,
+    CreditCard,
+    FileText,
     HelpCircle,
-    Settings,
+    Home,
+    LogOut,
     Menu,
+    MessageSquare,
+    Settings,
+    Sparkles,
+    Wrench,
     X,
+    type LucideIcon,
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
-import { cn } from '@/shared/lib/utils';
 import { useState } from 'react';
+import { cn } from '@/shared/lib/utils';
+import { MOCK_PROPERTIES } from '@/shared/mockData/properties';
+import { MOCK_TENANTS } from '@/shared/mockData/tenants';
 import logo from '@/shared/assets/rentaru.svg';
 
-// Types for Navigation
+const ACTIVE_TENANT_ID = 't1';
+const UNREAD_MESSAGES = 2;
+
 type TenantNavSection = {
-    label?: string; // Optional grouping label
+    label?: string;
     items: TenantNavItem[];
 };
 
 type TenantNavItem = {
     name: string;
-    icon: any;
+    icon: LucideIcon;
     href: string;
     badge?: {
         label: string | number;
         variant: 'neutral' | 'info' | 'warning' | 'critical' | 'success';
     };
-    hidden?: boolean; // For future gating logic
+    hidden?: boolean;
 };
-
-// --- MOCK STATE for MVP ---
-// In a real app, this would come from a `useTenantContext` hook
-const MOCK_TENANT_STATE = {
-    rentStatus: 'overdue' as const, // 'paid' | 'due' | 'overdue'
-    unreadMessages: 2,
-    activeMaintenance: 1,
-    balance: 1450,
-};
-
-// --- NAVIGATION CONFIG ---
-const TENANT_NAV_CONFIG: TenantNavSection[] = [
-    {
-        items: [
-            { name: 'Home', icon: Home, href: '/tenant/home' },
-            {
-                name: 'Payments',
-                icon: CreditCard,
-                href: '/tenant/payments',
-                badge: MOCK_TENANT_STATE.balance > 0 ? { label: `$${MOCK_TENANT_STATE.balance}`, variant: MOCK_TENANT_STATE.rentStatus === 'overdue' ? 'critical' : 'warning' } : undefined
-            },
-            {
-                name: 'Maintenance',
-                icon: Wrench,
-                href: '/tenant/maintenance',
-                badge: MOCK_TENANT_STATE.activeMaintenance > 0 ? { label: MOCK_TENANT_STATE.activeMaintenance, variant: 'info' } : undefined
-            },
-            { name: 'Lease & Docs', icon: FileText, href: '/tenant/documents' },
-            { name: 'My Unit', icon: Building, href: '/tenant/unit' },
-            {
-                name: 'Messages',
-                icon: MessageSquare,
-                href: '/tenant/messages',
-                badge: MOCK_TENANT_STATE.unreadMessages > 0 ? { label: MOCK_TENANT_STATE.unreadMessages, variant: 'info' } : undefined
-            },
-        ]
-    }
-];
-
-// --- COMPONENTS ---
 
 const NavBadge = ({ badge }: { badge: TenantNavItem['badge'] }) => {
     if (!badge) return null;
 
-    // Adapted for dark sidebar background
     const variants = {
         neutral: 'bg-slate-800 text-slate-300',
         info: 'bg-blue-500/20 text-blue-200',
         warning: 'bg-amber-500/20 text-amber-200',
         critical: 'bg-rose-500/20 text-rose-200',
         success: 'bg-emerald-500/20 text-emerald-200',
-    };
+    } as const;
 
     return (
-        <span className={cn("text-[10px] font-bold px-1.5 py-0.5 rounded-full ml-auto", variants[badge.variant])}>
+        <span className={cn('ml-auto rounded-full px-1.5 py-0.5 text-[10px] font-bold', variants[badge.variant])}>
             {badge.label}
         </span>
     );
@@ -99,110 +61,190 @@ const NavBadge = ({ badge }: { badge: TenantNavItem['badge'] }) => {
 export function TenantSidebar() {
     const [isMobileOpen, setIsMobileOpen] = useState(false);
 
+    const activeTenant = MOCK_TENANTS.find(({ id }) => id === ACTIVE_TENANT_ID);
+    const activeProperty = activeTenant
+        ? MOCK_PROPERTIES.find(({ id }) => id === activeTenant.propertyId)
+        : null;
+    const hasAmenities = Boolean(activeProperty?.features?.amenities && activeProperty.amenities?.length);
+    const hasVehicles = Boolean(activeProperty?.features?.vehicles);
+
+    const tenantState = {
+        rentStatus: activeTenant?.rentStatus ?? 'no_balance',
+        unreadMessages: UNREAD_MESSAGES,
+        activeMaintenance: activeTenant?.maintenanceRequestCount ?? 0,
+        balance: Math.max(activeTenant?.balance ?? 0, 0),
+    };
+
+    const navSections: TenantNavSection[] = [
+        {
+            items: [
+                { name: 'Home', icon: Home, href: '/tenant/home' },
+                {
+                    name: 'Payments',
+                    icon: CreditCard,
+                    href: '/tenant/payments',
+                    badge:
+                        tenantState.balance > 0
+                            ? {
+                                  label: `$${tenantState.balance}`,
+                                  variant: tenantState.rentStatus === 'overdue' ? 'critical' : 'warning',
+                              }
+                            : undefined,
+                },
+                {
+                    name: 'Maintenance',
+                    icon: Wrench,
+                    href: '/tenant/maintenance',
+                    badge:
+                        tenantState.activeMaintenance > 0
+                            ? { label: tenantState.activeMaintenance, variant: 'info' }
+                            : undefined,
+                },
+                { name: 'Lease & Docs', icon: FileText, href: '/tenant/documents' },
+                { name: 'My Unit', icon: Building, href: '/tenant/unit' },
+                { name: 'Amenities', icon: Sparkles, href: '/tenant/amenities', hidden: !hasAmenities },
+                { name: 'Vehicles', icon: Car, href: '/tenant/vehicles', hidden: !hasVehicles },
+                {
+                    name: 'Messages',
+                    icon: MessageSquare,
+                    href: '/tenant/messages',
+                    badge:
+                        tenantState.unreadMessages > 0
+                            ? { label: tenantState.unreadMessages, variant: 'info' }
+                            : undefined,
+                },
+            ],
+        },
+    ];
+
+    const tenantInitials = activeTenant?.name
+        .split(' ')
+        .map((part) => part[0])
+        .join('')
+        .slice(0, 2)
+        .toUpperCase() ?? 'TN';
+
     return (
         <>
-            {/* Mobile Header / Toggle */}
-            <div className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-background border-b z-40 flex items-center justify-between px-4">
-                <div className="flex items-center gap-2 font-bold text-lg">
-                    <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white">R</div>
+            <div className="fixed left-0 right-0 top-0 z-40 flex h-14 items-center justify-between border-b bg-background px-4 lg:hidden">
+                <div className="flex items-center gap-2 text-lg font-bold">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white">R</div>
                     <span>Rentaru</span>
                 </div>
-                <button onClick={() => setIsMobileOpen(!isMobileOpen)} className="p-2">
+                <button onClick={() => setIsMobileOpen((open) => !open)} className="p-2">
                     {isMobileOpen ? <X /> : <Menu />}
                 </button>
             </div>
 
-            {/* Sidebar Container */}
-            <aside className={cn(
-                "fixed inset-y-0 left-0 z-30 w-64 bg-sidebar text-sidebar-text border-r border-sidebar-hover transform transition-transform duration-200 ease-in-out lg:translate-x-0 pt-6 tall-desktop:pt-12 flex flex-col",
-                isMobileOpen ? "translate-x-0 mt-14 shadow-2xl" : "-translate-x-full lg:mt-0"
-            )}>
-                {/* Desktop Logo */}
-                <div className="hidden lg:flex px-6 mb-8 tall-desktop:mb-12 shrink-0 items-center gap-2">
+            <aside
+                className={cn(
+                    'fixed inset-y-0 left-0 z-30 flex w-64 flex-col border-r border-sidebar-hover bg-sidebar pt-6 text-sidebar-text transition-transform duration-200 ease-in-out tall-desktop:pt-12 lg:translate-x-0',
+                    isMobileOpen ? 'mt-14 translate-x-0 shadow-2xl' : '-translate-x-full lg:mt-0'
+                )}
+            >
+                <div className="mb-8 hidden shrink-0 items-center gap-2 px-6 lg:flex tall-desktop:mb-12">
                     <img src={logo} alt="Rentaru" className="h-6 w-auto" />
                 </div>
 
-                {/* Navigation Items */}
-                <nav className="flex-1 overflow-y-auto px-4 space-y-6 pb-6 custom-scrollbar">
-                    {TENANT_NAV_CONFIG.map((section, idx) => (
-                        <div key={idx}>
-                            {section.label && (
-                                <h3 className="px-3 mb-2 text-xs font-semibold text-sidebar-text/50 uppercase tracking-wider">
+                <nav className="custom-scrollbar flex-1 space-y-6 overflow-y-auto px-4 pb-6">
+                    {navSections.map((section, index) => (
+                        <div key={index}>
+                            {section.label ? (
+                                <h3 className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-sidebar-text/50">
                                     {section.label}
                                 </h3>
-                            )}
+                            ) : null}
                             <div className="space-y-1">
-                                {section.items.map(item => !item.hidden && (
-                                    <NavLink
-                                        key={item.name}
-                                        to={item.href}
-                                        onClick={() => setIsMobileOpen(false)}
-                                        className={({ isActive }) => cn(
-                                            "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors relative group",
-                                            isActive
-                                                ? "bg-sidebar-active text-sidebar-textActive shadow-sm"
-                                                : "text-sidebar-text hover:bg-sidebar-hover hover:text-sidebar-textActive"
-                                        )}
-                                    >
-                                        <item.icon size={18} className={cn("shrink-0", ({ isActive }: { isActive: boolean }) => isActive ? "text-white" : "text-sidebar-text group-hover:text-sidebar-textActive")} />
-                                        <span>{item.name}</span>
-                                        <NavBadge badge={item.badge} />
-                                    </NavLink>
-                                ))}
+                                {section.items
+                                    .filter((item) => !item.hidden)
+                                    .map((item) => (
+                                        <NavLink
+                                            key={item.name}
+                                            to={item.href}
+                                            onClick={() => setIsMobileOpen(false)}
+                                            className={({ isActive }) =>
+                                                cn(
+                                                    'group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                                                    isActive
+                                                        ? 'bg-sidebar-active text-sidebar-textActive shadow-sm'
+                                                        : 'text-sidebar-text hover:bg-sidebar-hover hover:text-sidebar-textActive'
+                                                )
+                                            }
+                                        >
+                                            {({ isActive }) => (
+                                                <>
+                                                    <item.icon
+                                                        size={18}
+                                                        className={cn(
+                                                            'shrink-0',
+                                                            isActive
+                                                                ? 'text-sidebar-textActive'
+                                                                : 'text-sidebar-text group-hover:text-sidebar-textActive'
+                                                        )}
+                                                    />
+                                                    <span>{item.name}</span>
+                                                    <NavBadge badge={item.badge} />
+                                                </>
+                                            )}
+                                        </NavLink>
+                                    ))}
                             </div>
                         </div>
                     ))}
                 </nav>
 
-                {/* Footer Actions */}
-                <div className="p-4 border-t border-sidebar-hover space-y-1">
+                <div className="space-y-1 border-t border-sidebar-hover p-4">
                     <NavLink
                         to="/tenant/settings"
-                        className={({ isActive }) => cn(
-                            "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors hover:text-sidebar-textActive hover:bg-sidebar-hover",
-                            isActive ? "bg-sidebar-active text-sidebar-textActive" : "text-sidebar-text"
-                        )}
+                        className={({ isActive }) =>
+                            cn(
+                                'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-sidebar-hover hover:text-sidebar-textActive',
+                                isActive ? 'bg-sidebar-active text-sidebar-textActive' : 'text-sidebar-text'
+                            )
+                        }
                     >
                         <Settings size={18} />
                         <span>Settings</span>
                     </NavLink>
                     <NavLink
                         to="/tenant/help"
-                        className={({ isActive }) => cn(
-                            "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors hover:text-sidebar-textActive hover:bg-sidebar-hover",
-                            isActive ? "bg-sidebar-active text-sidebar-textActive" : "text-sidebar-text"
-                        )}
+                        className={({ isActive }) =>
+                            cn(
+                                'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-sidebar-hover hover:text-sidebar-textActive',
+                                isActive ? 'bg-sidebar-active text-sidebar-textActive' : 'text-sidebar-text'
+                            )
+                        }
                     >
                         <HelpCircle size={18} />
                         <span>Help & Support</span>
                     </NavLink>
-                    <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-sidebar-text hover:text-red-400 hover:bg-sidebar-hover">
+                    <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-text transition-colors hover:bg-sidebar-hover hover:text-red-400">
                         <LogOut size={18} />
                         <span>Log Out</span>
                     </button>
                 </div>
 
-                {/* Tenant Profile Snippet */}
-                <div className="p-4 border-t border-sidebar-hover bg-sidebar-hover/30">
+                <div className="border-t border-sidebar-hover bg-sidebar-hover/30 p-4">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-sidebar-active flex items-center justify-center border border-sidebar-hover text-sm font-medium text-sidebar-textActive">
-                            JS
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-sidebar-hover bg-sidebar-active text-sm font-medium text-sidebar-textActive">
+                            {tenantInitials}
                         </div>
-                        <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate text-sidebar-textActive">John Smith</p>
-                            <p className="text-xs text-sidebar-text/70 truncate">Unit 3B • Sunset Apts</p>
+                        <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-medium text-sidebar-textActive">{activeTenant?.name ?? 'Tenant'}</p>
+                            <p className="truncate text-xs text-sidebar-text/70">
+                                Unit {activeTenant?.unitNumber ?? '--'} • {activeProperty?.name ?? activeTenant?.propertyName ?? 'Property'}
+                            </p>
                         </div>
                     </div>
                 </div>
             </aside>
 
-            {/* Mobile Overlay */}
-            {isMobileOpen && (
+            {isMobileOpen ? (
                 <div
-                    className="fixed inset-0 bg-background/80 backdrop-blur-sm z-20 lg:hidden"
+                    className="fixed inset-0 z-20 bg-background/80 backdrop-blur-sm lg:hidden"
                     onClick={() => setIsMobileOpen(false)}
                 />
-            )}
+            ) : null}
         </>
     );
 }

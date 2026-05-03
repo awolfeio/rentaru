@@ -1,22 +1,21 @@
 
-import { useState, useMemo } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MOCK_TENANTS } from '@/shared/mockData/tenants';
 import { 
     User, Phone, Mail, MapPin, Calendar, CreditCard, 
     FileText, Wrench, MessageSquare, Users, Shield, 
-    Clock, AlertCircle, CheckCircle2, MoreVertical,
-    ArrowUpRight, Download, Plus, History, DollarSign,
-    Building, Key
+    Clock, MoreVertical, Download, Plus, History, DollarSign,
+    Building, Key, Car
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/shared/lib/utils';
 import { format } from 'date-fns';
 import { RecordManualPaymentDrawer } from '@/features/payments/components/RecordManualPaymentDrawer';
-import { Payment } from '@/features/payments/types';
 import { CreateMaintenanceTicketModal } from '@/shared/components/maintenance/CreateTicketModal';
 import { TicketRow } from '@/shared/components/maintenance/TicketRow';
 import { MOCK_TICKETS } from '@/shared/mockData/maintenance';
+import type { Tenant, TenantInsurancePolicy, TenantVehicle } from '@/shared/types/tenant';
 
 // Types based on the plan
 type TabType = 'overview' | 'leases' | 'payments' | 'maintenance' | 'documents' | 'messages' | 'household' | 'notes' | 'activity';
@@ -288,7 +287,10 @@ export default function TenantProfile() {
 
 // --- Sub-components (Tab Content) ---
 
-function OverviewTab({ tenant }: { tenant: any }) {
+function OverviewTab({ tenant }: { tenant: Tenant }) {
+    const vehicles = tenant.vehicles ?? [];
+    const insurancePolicies = tenant.insurancePolicies ?? [];
+
     return (
         <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -313,6 +315,11 @@ function OverviewTab({ tenant }: { tenant: any }) {
                     status={tenant.maintenanceRequestCount > 0 ? 'warning' : 'good'}
                     icon={Wrench}
                 />
+            </div>
+
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <VehiclesSection vehicles={vehicles} />
+                <InsuranceSection policies={insurancePolicies} />
             </div>
 
             {/* Recent Activity Mini-Feed */}
@@ -348,7 +355,7 @@ function OverviewTab({ tenant }: { tenant: any }) {
     );
 }
 
-function LeasesTab({ tenant }: { tenant: any }) {
+function LeasesTab({ tenant }: { tenant: Tenant }) {
     return (
         <div className="bg-card rounded-xl border shadow-sm">
             <div className="px-6 py-4 border-b">
@@ -413,7 +420,7 @@ function LeasesTab({ tenant }: { tenant: any }) {
     );
 }
 
-function PaymentsTab({ tenant, onRecordPayment }: { tenant: any, onRecordPayment: () => void }) {
+function PaymentsTab({ tenant, onRecordPayment }: { tenant: Tenant, onRecordPayment: () => void }) {
     return (
         <div className="bg-card rounded-xl border shadow-sm">
              <div className="px-6 py-4 border-b flex items-center justify-between">
@@ -464,7 +471,7 @@ function PaymentsTab({ tenant, onRecordPayment }: { tenant: any, onRecordPayment
     );
 }
 
-function MaintenanceTab({ tenant }: { tenant: any }) {
+function MaintenanceTab({ tenant }: { tenant: Tenant }) {
     const tenantTickets = MOCK_TICKETS.slice(0, 3).map(t => ({
         ...t,
         propertyId: tenant.propertyId,
@@ -487,7 +494,7 @@ function MaintenanceTab({ tenant }: { tenant: any }) {
     );
 }
 
-function HouseholdTab({ tenant }: { tenant: any }) {
+function HouseholdTab({ tenant }: { tenant: Tenant }) {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {MOCK_HOUSEHOLD.map(member => (
@@ -526,7 +533,7 @@ function HouseholdTab({ tenant }: { tenant: any }) {
     );
 }
 
-function ActivityTab({ tenant }: { tenant: any }) {
+function ActivityTab({ tenant }: { tenant: Tenant }) {
     return (
         <div className="bg-card rounded-xl border shadow-sm">
              <div className="px-6 py-4 border-b">
@@ -554,6 +561,142 @@ function ActivityTab({ tenant }: { tenant: any }) {
             </div>
         </div>
     );
+}
+
+function VehiclesSection({ vehicles }: { vehicles: TenantVehicle[] }) {
+    return (
+        <div className="bg-card rounded-xl border shadow-sm">
+            <div className="px-6 py-4 border-b flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <Car className="w-4 h-4 text-slate-500" />
+                    <h3 className="font-semibold text-sm">Vehicles</h3>
+                </div>
+                <span className="text-xs font-medium text-muted-foreground">
+                    {vehicles.length} {vehicles.length === 1 ? 'vehicle' : 'vehicles'} on file
+                </span>
+            </div>
+            <div className="p-6">
+                {vehicles.length > 0 ? (
+                    <div className="space-y-4">
+                        {vehicles.map(vehicle => (
+                            <div key={vehicle.id} className="rounded-xl border bg-muted/20 p-4">
+                                <div className="flex items-start justify-between gap-3">
+                                    <div>
+                                        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                                            Vehicle Title
+                                        </p>
+                                        <h4 className="mt-1 text-sm font-semibold text-foreground">{vehicle.title}</h4>
+                                    </div>
+                                    <span className={cn(
+                                        "inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide",
+                                        vehicle.powertrain === 'electric'
+                                            ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                                            : 'border-slate-200 bg-slate-100 text-slate-700'
+                                    )}>
+                                        {vehicle.powertrain === 'electric' ? 'Electric' : 'Non Electric'}
+                                    </span>
+                                </div>
+                                <div className="mt-4 grid grid-cols-2 gap-4">
+                                    <ProfileDetail label="Year" value={vehicle.year.toString()} />
+                                    <ProfileDetail label="Color" value={vehicle.color} />
+                                    <ProfileDetail label="License Plate" value={vehicle.licensePlate} />
+                                    <ProfileDetail
+                                        label="Powertrain"
+                                        value={vehicle.powertrain === 'electric' ? 'Electric' : 'Non Electric'}
+                                    />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <EmptyStateCard
+                        icon={<Car className="w-5 h-5 text-muted-foreground" />}
+                        message="No vehicles have been added for this tenant yet."
+                    />
+                )}
+            </div>
+        </div>
+    );
+}
+
+function InsuranceSection({ policies }: { policies: TenantInsurancePolicy[] }) {
+    return (
+        <div className="bg-card rounded-xl border shadow-sm">
+            <div className="px-6 py-4 border-b flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-slate-500" />
+                    <h3 className="font-semibold text-sm">Insurance</h3>
+                </div>
+                <span className="text-xs font-medium text-muted-foreground">
+                    {policies.length} {policies.length === 1 ? 'policy' : 'policies'} on file
+                </span>
+            </div>
+            <div className="p-6">
+                {policies.length > 0 ? (
+                    <div className="space-y-4">
+                        {policies.map(policy => (
+                            <div key={policy.id} className="rounded-xl border bg-muted/20 p-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <ProfileDetail label="Policy #" value={policy.policyNumber} />
+                                    <ProfileDetail label="Provider" value={policy.provider} />
+                                    <ProfileDetail
+                                        label="Coverage Date"
+                                        value={formatCoverageDate(policy.coverageStartDate, policy.coverageEndDate)}
+                                    />
+                                    <div className="sm:col-span-2">
+                                        <span className="block text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                                            Liability
+                                        </span>
+                                        <div className="mt-2 flex flex-wrap gap-2">
+                                            {policy.liabilityNumbers.map((liabilityNumber, index) => (
+                                                <span
+                                                    key={`${policy.id}-${index}`}
+                                                    className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700"
+                                                >
+                                                    {liabilityNumber}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <EmptyStateCard
+                        icon={<Shield className="w-5 h-5 text-muted-foreground" />}
+                        message="No insurance policies have been added for this tenant yet."
+                    />
+                )}
+            </div>
+        </div>
+    );
+}
+
+function ProfileDetail({ label, value }: { label: string; value: string }) {
+    return (
+        <div>
+            <span className="block text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</span>
+            <div className="mt-1 text-sm font-medium text-foreground">{value}</div>
+        </div>
+    );
+}
+
+function EmptyStateCard({ icon, message }: { icon: ReactNode; message: string }) {
+    return (
+        <div className="rounded-xl border border-dashed bg-muted/20 p-6">
+            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-background border">
+                    {icon}
+                </div>
+                <p>{message}</p>
+            </div>
+        </div>
+    );
+}
+
+function formatCoverageDate(startDate: string, endDate: string) {
+    return `${format(new Date(startDate), 'MMM d, yyyy')} - ${format(new Date(endDate), 'MMM d, yyyy')}`;
 }
 
 function CardMetric({ label, value, subtext, status, icon: Icon }: any) {
