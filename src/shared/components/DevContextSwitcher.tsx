@@ -18,7 +18,7 @@ export function DevContextSwitcher() {
   };
 
   return (
-    <div className="fixed bottom-4 right-4 z-[9999]">
+    <div id="dev-toolbar" className="fixed bottom-4 right-4 z-[9999] flex flex-col items-end gap-2">
       <button
         onClick={toggleContext}
         className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-full shadow-lg border border-slate-700 hover:bg-slate-800 transition-all font-mono text-xs font-bold uppercase tracking-wider opacity-50 hover:opacity-100"
